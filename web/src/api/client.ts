@@ -1,4 +1,4 @@
-import type { Lesson, LessonInput, LessonListItem } from '../types/lesson';
+import type { Image, Lesson, LessonInput, LessonListItem } from '../types/lesson';
 
 const BASE = '/api';
 
@@ -36,9 +36,18 @@ function deleteLesson(id: string): Promise<void> {
   return request<void>(`/lessons/${id}`, { method: 'DELETE' });
 }
 
+async function generateImage(lessonId: string, refKey: string, prompt: string): Promise<Image> {
+  const { image } = await request<{ image: Image }>(`/lessons/${lessonId}/images`, {
+    method: 'POST',
+    body: JSON.stringify({ refKey, prompt }),
+  });
+  return image;
+}
+
 export const api = {
   generateLesson,
   listLessons,
   getLesson,
   deleteLesson,
+  generateImage,
 };

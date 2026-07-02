@@ -69,7 +69,12 @@ function LessonDetail() {
           masteryCriteria={lesson.sto.masteryCriteria}
         />
 
-        <TargetCarousel targets={lesson.targetList} images={lesson.images} />
+        <TargetCarousel
+          targets={lesson.targetList}
+          images={lesson.images}
+          lessonId={lesson.id}
+          skill={lesson.input.skill}
+        />
 
         {lesson.sessionSuggestion && <SessionNote text={lesson.sessionSuggestion} />}
       </div>

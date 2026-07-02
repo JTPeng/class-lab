@@ -1,15 +1,21 @@
 import 'dotenv/config';
+import { mkdirSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import fastifyStatic from '@fastify/static';
 import type Database from 'better-sqlite3';
 import { getDb } from './db/index.js';
 import { generateLesson as defaultGenerateLesson } from './services/generateLesson.js';
 import { registerLessonRoutes } from './routes/lessons.js';
+import { registerImageRoutes, uploadsDir } from './routes/images.js';
+import type { generateImageUrl as defaultGenerateImageUrl } from './ai/imageClient.js';
 
 export interface BuildAppDeps {
   db?: Database.Database;
   generateLesson?: typeof defaultGenerateLesson;
+  generateImageUrl?: typeof defaultGenerateImageUrl;
+  fetchImpl?: typeof fetch;
 }
 
 export function buildApp(deps: BuildAppDeps = {}): FastifyInstance {
@@ -19,11 +25,19 @@ export function buildApp(deps: BuildAppDeps = {}): FastifyInstance {
 
   app.register(cors, { origin: true });
 
+  mkdirSync(uploadsDir, { recursive: true });
+  app.register(fastifyStatic, { root: uploadsDir, prefix: '/uploads/' });
+
   app.get('/health', async () => ({ ok: true }));
 
   app.register(
     async (instance) => {
       await registerLessonRoutes(instance, { db, generateLesson });
+      await registerImageRoutes(instance, {
+        db,
+        generateImageUrl: deps.generateImageUrl,
+        fetchImpl: deps.fetchImpl,
+      });
     },
     { prefix: '/api' },
   );

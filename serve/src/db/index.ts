@@ -37,6 +37,10 @@ export function insertLesson(db: Database.Database, lesson: Lesson): void {
   ).run(lesson.id, lesson.title, lesson.input.skill, lesson.createdAt, JSON.stringify(lesson));
 }
 
+export function updateLesson(db: Database.Database, lesson: Lesson): void {
+  db.prepare(`UPDATE lessons SET data = ? WHERE id = ?`).run(JSON.stringify(lesson), lesson.id);
+}
+
 function coverUrlFromLesson(lesson: Lesson): string | undefined {
   return lesson.images.find((image) => image.status === 'done' && image.url)?.url;
 }

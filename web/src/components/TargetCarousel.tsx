@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Target, Image } from '../types/lesson'
+import { api } from '../api/client'
 import SectionHeading from './poster/SectionHeading'
 import Lightbox from './Lightbox'
 
@@ -13,10 +14,26 @@ function findImageForTarget(target: Target, idx: number, images: Image[]): Image
   )
 }
 
-// 交互 2·图卡轮播：左右切换目标，命中真实图片可点击放大，否则显示占位/加载态
-function TargetCarousel({ targets, images }: { targets: Target[]; images: Image[] }) {
+function buildPrompt(target: Target, skill: string): string {
+  return `${target.target}（${skill}），儿童教具风格插画，简洁卡通，白色背景，色彩明亮`
+}
+
+// 交互 2·图卡轮播：左右切换目标，命中真实图片可点击放大，否则显示占位/加载态，
+// 支持按需生成配图（点击才触发，不在页面加载时自动全量生成，因每张约需 1 分钟）。
+function TargetCarousel({
+  targets,
+  images,
+  lessonId,
+  skill,
+}: {
+  targets: Target[]
+  images: Image[]
+  lessonId: string
+  skill: string
+}) {
   const [active, setActive] = useState(0)
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
+  const [localImages, setLocalImages] = useState<Record<string, Image>>({})
 
   if (targets.length === 0) return null
 
@@ -24,10 +41,28 @@ function TargetCarousel({ targets, images }: { targets: Target[]; images: Image[
   const goPrev = () => setActive((i) => (i - 1 + total) % total)
   const goNext = () => setActive((i) => (i + 1) % total)
 
+  const byRefKey = new Map<string, Image>()
+  images.forEach((img) => byRefKey.set(img.refKey, img))
+  Object.values(localImages).forEach((img) => byRefKey.set(img.refKey, img))
+  const mergedImages = Array.from(byRefKey.values())
+
   const target = targets[active]
-  const image = findImageForTarget(target, active, images)
+  const image = findImageForTarget(target, active, mergedImages)
   const hasImage = image?.status === 'done' && !!image.url
   const isPending = image?.status === 'pending'
+  const isFailed = image?.status === 'failed'
+
+  async function handleGenerate() {
+    const refKey = `target:${active}`
+    const prompt = buildPrompt(target, skill)
+    setLocalImages((prev) => ({ ...prev, [refKey]: { refKey, prompt, status: 'pending' } }))
+    try {
+      const result = await api.generateImage(lessonId, refKey, prompt)
+      setLocalImages((prev) => ({ ...prev, [refKey]: result }))
+    } catch {
+      setLocalImages((prev) => ({ ...prev, [refKey]: { refKey, prompt, status: 'failed' } }))
+    }
+  }
 
   return (
     <section>
@@ -55,12 +90,31 @@ function TargetCarousel({ targets, images }: { targets: Target[]; images: Image[
                 <img src={image.url} alt={target.target} className="h-full w-full object-cover" />
               ) : isPending ? (
                 <div className="flex h-full w-full animate-pulse flex-col items-center justify-center gap-2 bg-stone-200">
-                  <span className="text-sm font-bold text-stone-400">配图生成中...</span>
+                  <span className="text-sm font-bold text-stone-400">生成中，约需 1 分钟...</span>
+                </div>
+              ) : isFailed ? (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
+                  <span className="text-3xl">⚠️</span>
+                  <p className="text-sm font-bold text-rose-400">配图生成失败</p>
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    className="mt-1 rounded-full bg-brand-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600"
+                  >
+                    重试
+                  </button>
                 </div>
               ) : (
                 <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
                   <span className="text-3xl">🖼️</span>
                   <p className="text-sm font-bold text-brand-400">配图待生成</p>
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    className="mt-1 rounded-full bg-brand-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600"
+                  >
+                    ✨ 生成配图
+                  </button>
                 </div>
               )}
             </div>
