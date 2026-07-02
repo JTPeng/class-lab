@@ -18,8 +18,10 @@ function buildPrompt(target: Target, skill: string): string {
   return `${target.target}（${skill}），儿童教具风格插画，简洁卡通，白色背景，色彩明亮`
 }
 
-// 交互 2·图卡轮播：左右切换目标，命中真实图片可点击放大，否则显示占位/加载态，
-// 支持按需生成配图（点击才触发，不在页面加载时自动全量生成，因每张约需 1 分钟）。
+// 交互 2·图卡轮播：左右切换目标，命中真实图片可点击放大，否则显示占位/加载态。
+// 主路径是顶部「一键生成全部配图」：对所有非 done 的目标并发生成（Promise.allSettled）；
+// 失败的目标额外保留单独「重试」入口，仅重发该一张。
+// 所有目标卡始终在 DOM 中（非 active 用 `hidden` 隐藏），供 @media print 展开成完整清单。
 function TargetCarousel({
   targets,
   images,
@@ -34,6 +36,8 @@ function TargetCarousel({
   const [active, setActive] = useState(0)
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
   const [localImages, setLocalImages] = useState<Record<string, Image>>({})
+  const [generatingAll, setGeneratingAll] = useState(false)
+  const [progress, setProgress] = useState({ done: 0, total: 0 })
 
   if (targets.length === 0) return null
 
@@ -46,15 +50,13 @@ function TargetCarousel({
   Object.values(localImages).forEach((img) => byRefKey.set(img.refKey, img))
   const mergedImages = Array.from(byRefKey.values())
 
-  const target = targets[active]
-  const image = findImageForTarget(target, active, mergedImages)
-  const hasImage = image?.status === 'done' && !!image.url
-  const isPending = image?.status === 'pending'
-  const isFailed = image?.status === 'failed'
+  function imageFor(idx: number): Image | undefined {
+    return findImageForTarget(targets[idx], idx, mergedImages)
+  }
 
-  async function handleGenerate() {
-    const refKey = `target:${active}`
-    const prompt = buildPrompt(target, skill)
+  async function generateOne(idx: number): Promise<void> {
+    const refKey = `target:${idx}`
+    const prompt = buildPrompt(targets[idx], skill)
     setLocalImages((prev) => ({ ...prev, [refKey]: { refKey, prompt, status: 'pending' } }))
     try {
       const result = await api.generateImage(lessonId, refKey, prompt)
@@ -64,9 +66,35 @@ function TargetCarousel({
     }
   }
 
+  async function handleGenerateAll() {
+    const todoIdxs = targets.map((_, idx) => idx).filter((idx) => imageFor(idx)?.status !== 'done')
+    if (todoIdxs.length === 0) return
+    setGeneratingAll(true)
+    setProgress({ done: 0, total: todoIdxs.length })
+    let doneCount = 0
+    await Promise.allSettled(
+      todoIdxs.map(async (idx) => {
+        await generateOne(idx)
+        doneCount += 1
+        setProgress({ done: doneCount, total: todoIdxs.length })
+      }),
+    )
+    setGeneratingAll(false)
+  }
+
   return (
     <section>
-      <SectionHeading sub="Target List · 图卡轮播">目标清单</SectionHeading>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <SectionHeading sub="Target List · 图卡轮播">目标清单</SectionHeading>
+        <button
+          type="button"
+          onClick={handleGenerateAll}
+          disabled={generatingAll}
+          className="shrink-0 rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60 print:hidden"
+        >
+          {generatingAll ? `生成中 ${progress.done}/${progress.total}...` : '✨ 一键生成全部配图'}
+        </button>
+      </div>
 
       <div className="rounded-2xl bg-white p-6 shadow-card ring-1 ring-brand-100 sm:p-8">
         <div className="flex items-center gap-4">
@@ -74,68 +102,76 @@ function TargetCarousel({
             type="button"
             onClick={goPrev}
             aria-label="上一个目标"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-black text-brand-600 transition hover:bg-brand-200"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-black text-brand-600 transition hover:bg-brand-200 print:hidden"
           >
             ‹
           </button>
 
           <div className="flex-1">
-            <div
-              className={`relative mx-auto flex aspect-[4/3] w-full max-w-sm items-center justify-center overflow-hidden rounded-xl ${
-                hasImage ? 'cursor-pointer bg-stone-100' : 'border-2 border-dashed border-brand-200 bg-brand-50'
-              }`}
-              onClick={() => hasImage && image?.url && setLightboxUrl(image.url)}
-            >
-              {hasImage && image?.url ? (
-                <img src={image.url} alt={target.target} className="h-full w-full object-cover" />
-              ) : isPending ? (
-                <div className="flex h-full w-full animate-pulse flex-col items-center justify-center gap-2 bg-stone-200">
-                  <span className="text-sm font-bold text-stone-400">生成中，约需 1 分钟...</span>
-                </div>
-              ) : isFailed ? (
-                <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
-                  <span className="text-3xl">⚠️</span>
-                  <p className="text-sm font-bold text-rose-400">配图生成失败</p>
-                  <button
-                    type="button"
-                    onClick={handleGenerate}
-                    className="mt-1 rounded-full bg-brand-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600"
-                  >
-                    重试
-                  </button>
-                </div>
-              ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
-                  <span className="text-3xl">🖼️</span>
-                  <p className="text-sm font-bold text-brand-400">配图待生成</p>
-                  <button
-                    type="button"
-                    onClick={handleGenerate}
-                    className="mt-1 rounded-full bg-brand-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600"
-                  >
-                    ✨ 生成配图
-                  </button>
-                </div>
-              )}
-            </div>
+            {targets.map((target, idx) => {
+              const image = imageFor(idx)
+              const hasImage = image?.status === 'done' && !!image.url
+              const isPending = image?.status === 'pending'
+              const isFailed = image?.status === 'failed'
 
-            <p className="mt-4 text-center text-lg font-black text-stone-900">{target.target}</p>
-            <p className="mt-1 text-center text-xs font-bold uppercase tracking-wide text-brand-500">
-              第 {active + 1} / {total} 个目标
-            </p>
+              return (
+                <div
+                  key={idx}
+                  className={`${idx === active ? '' : 'hidden'} print:mb-8 print:block print:break-inside-avoid`}
+                >
+                  <div
+                    className={`relative mx-auto flex aspect-[4/3] w-full max-w-sm items-center justify-center overflow-hidden rounded-xl ${
+                      hasImage ? 'cursor-pointer bg-stone-100' : 'border-2 border-dashed border-brand-200 bg-brand-50'
+                    }`}
+                    onClick={() => hasImage && image?.url && setLightboxUrl(image.url)}
+                  >
+                    {hasImage && image?.url ? (
+                      <img src={image.url} alt={target.target} className="h-full w-full object-cover" />
+                    ) : isPending ? (
+                      <div className="flex h-full w-full animate-pulse flex-col items-center justify-center gap-2 bg-stone-200">
+                        <span className="text-sm font-bold text-stone-400">生成中，约需 1 分钟...</span>
+                      </div>
+                    ) : isFailed ? (
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
+                        <span className="text-3xl">⚠️</span>
+                        <p className="text-sm font-bold text-rose-400">配图生成失败</p>
+                        <button
+                          type="button"
+                          onClick={() => generateOne(idx)}
+                          disabled={generatingAll}
+                          className="mt-1 rounded-full bg-brand-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60 print:hidden"
+                        >
+                          重试
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
+                        <span className="text-3xl">🖼️</span>
+                        <p className="text-sm font-bold text-brand-400">配图待生成</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="mt-4 text-center text-lg font-black text-stone-900">{target.target}</p>
+                  <p className="mt-1 text-center text-xs font-bold uppercase tracking-wide text-brand-500">
+                    第 {idx + 1} / {total} 个目标
+                  </p>
+                </div>
+              )
+            })}
           </div>
 
           <button
             type="button"
             onClick={goNext}
             aria-label="下一个目标"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-black text-brand-600 transition hover:bg-brand-200"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-black text-brand-600 transition hover:bg-brand-200 print:hidden"
           >
             ›
           </button>
         </div>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex flex-wrap justify-center gap-2 print:hidden">
           {targets.map((_, idx) => (
             <button
               key={idx}
@@ -151,7 +187,7 @@ function TargetCarousel({
       </div>
 
       {lightboxUrl && (
-        <Lightbox url={lightboxUrl} alt={target.target} onClose={() => setLightboxUrl(null)} />
+        <Lightbox url={lightboxUrl} alt={targets[active].target} onClose={() => setLightboxUrl(null)} />
       )}
     </section>
   )
