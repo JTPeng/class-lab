@@ -1,0 +1,33 @@
+# 依赖
+node_modules/
+web/node_modules/
+serve/node_modules/
+
+# 密钥与环境变量
+.env
+.env.*
+!.env.example
+serve/.env
+
+# 构建产物
+dist/
+build/
+web/dist/
+serve/dist/
+
+# SQLite 数据库
+*.sqlite
+*.sqlite3
+*.db
+serve/*.db
+
+# 上传的图片
+serve/uploads/
+
+# 日志与系统文件
+*.log
+.DS_Store
+
+# 编辑器
+.vscode/
+.idea/
