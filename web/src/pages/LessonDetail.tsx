@@ -5,8 +5,8 @@ import type { Lesson } from '../types/lesson'
 import Hero from '../components/poster/Hero'
 import PhaseTimeline from '../components/poster/PhaseTimeline'
 import StoSection from '../components/poster/StoSection'
-import ProcedureSection from '../components/poster/ProcedureSection'
-import TargetListSection from '../components/poster/TargetListSection'
+import RoundFlow from '../components/RoundFlow'
+import TargetCarousel from '../components/TargetCarousel'
 import SessionNote from '../components/poster/SessionNote'
 
 function LessonDetail() {
@@ -63,13 +63,13 @@ function LessonDetail() {
 
         <StoSection sto={lesson.sto} />
 
-        <ProcedureSection
+        <RoundFlow
           procedure={lesson.sto.procedure}
           dataCollection={lesson.sto.dataCollection}
           masteryCriteria={lesson.sto.masteryCriteria}
         />
 
-        <TargetListSection targets={lesson.targetList} />
+        <TargetCarousel targets={lesson.targetList} images={lesson.images} />
 
         {lesson.sessionSuggestion && <SessionNote text={lesson.sessionSuggestion} />}
       </div>
