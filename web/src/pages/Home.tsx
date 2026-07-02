@@ -29,25 +29,25 @@ function Home() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-cream py-10 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Class-Lab DTT 教案工具</h1>
+          <h1 className="text-2xl font-bold text-stone-900">Class-Lab DTT 教案工具</h1>
           <Link
             to="/new"
-            className="bg-purple-600 text-white font-medium px-4 py-2 rounded hover:bg-purple-700"
+            className="bg-brand-500 text-white font-medium px-4 py-2 rounded-full shadow-card hover:bg-brand-600 transition-colors"
           >
             ＋ 新建教案
           </Link>
         </div>
 
-        {loading && <p className="text-gray-500">加载中...</p>}
-        {error && <p className="text-red-600">{error}</p>}
+        {loading && <p className="text-stone-500">加载中...</p>}
+        {error && <p className="text-rose-600">{error}</p>}
 
         {!loading && !error && lessons.length === 0 && (
-          <p className="text-gray-500">
+          <p className="text-stone-500">
             还没有教案，
-            <Link to="/new" className="text-purple-600 hover:underline">
+            <Link to="/new" className="text-brand-600 hover:underline">
               点击新建
             </Link>
           </p>
@@ -59,11 +59,11 @@ function Home() {
               <Link
                 key={lesson.id}
                 to={`/lessons/${lesson.id}`}
-                className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow"
+                className="bg-white rounded-2xl shadow-card ring-1 ring-stone-100 p-4 hover:shadow-soft hover:-translate-y-0.5 transition-all"
               >
-                <h2 className="font-semibold text-gray-900 truncate">{lesson.title}</h2>
-                <p className="text-sm text-gray-600 mt-1">技能：{lesson.skill}</p>
-                <p className="text-xs text-gray-400 mt-2">{formatDate(lesson.createdAt)}</p>
+                <h2 className="font-semibold text-stone-900 truncate">{lesson.title}</h2>
+                <p className="text-sm text-stone-600 mt-1">技能：{lesson.skill}</p>
+                <p className="text-xs text-stone-400 mt-2">{formatDate(lesson.createdAt)}</p>
               </Link>
             ))}
           </div>

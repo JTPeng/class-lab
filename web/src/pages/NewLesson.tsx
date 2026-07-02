@@ -60,16 +60,16 @@ function NewLesson() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-cream py-10 px-4">
       <div className="max-w-2xl mx-auto">
-        <Link to="/" className="text-sm text-purple-600 hover:underline">
+        <Link to="/" className="text-sm text-brand-600 hover:underline">
           ← 返回首页
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 mt-2 mb-6">新建教案</h1>
+        <h1 className="text-2xl font-bold text-stone-900 mt-2 mb-6">新建教案</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-2xl shadow-card ring-1 ring-stone-100">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-stone-700 mb-1">
               目标技能 <span className="text-red-500">*</span>
             </label>
             <input
@@ -79,12 +79,12 @@ function NewLesson() {
               disabled={submitting}
               required
               placeholder="例如：认识颜色"
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
+              className="w-full border border-stone-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-stone-100"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">可用教具</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">可用教具</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -98,13 +98,13 @@ function NewLesson() {
                 }}
                 disabled={submitting}
                 placeholder="例如：卡片、积木"
-                className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
+                className="flex-1 border border-stone-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-stone-100"
               />
               <button
                 type="button"
                 onClick={addTool}
                 disabled={submitting}
-                className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-stone-200 text-stone-800 hover:bg-stone-300 disabled:opacity-50"
               >
                 添加
               </button>
@@ -114,7 +114,7 @@ function NewLesson() {
                 {availableTools.map((tool) => (
                   <li
                     key={tool}
-                    className="flex items-center gap-1 bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full"
+                    className="flex items-center gap-1 bg-brand-100 text-brand-800 text-sm px-3 py-1 rounded-full"
                   >
                     {tool}
                     <button
@@ -122,7 +122,7 @@ function NewLesson() {
                       onClick={() => removeTool(tool)}
                       disabled={submitting}
                       aria-label={`移除 ${tool}`}
-                      className="text-purple-600 hover:text-purple-900 disabled:opacity-50"
+                      className="text-brand-600 hover:text-brand-900 disabled:opacity-50"
                     >
                       ×
                     </button>
@@ -133,12 +133,12 @@ function NewLesson() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">教学场景</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">教学场景</label>
             <select
               value={context}
               onChange={(e) => setContext(e.target.value as LessonInput['context'])}
               disabled={submitting}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
+              className="w-full border border-stone-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-stone-100"
             >
               {CONTEXT_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
@@ -149,19 +149,19 @@ function NewLesson() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">强化物偏好（可选）</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">强化物偏好（可选）</label>
             <input
               type="text"
               value={reinforcerPref}
               onChange={(e) => setReinforcerPref(e.target.value)}
               disabled={submitting}
               placeholder="例如：小饼干、贴纸"
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
+              className="w-full border border-stone-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-stone-100"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">单次时长（分钟，可选）</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">单次时长（分钟，可选）</label>
             <input
               type="number"
               min={1}
@@ -169,14 +169,14 @@ function NewLesson() {
               onChange={(e) => setSessionMinutes(e.target.value)}
               disabled={submitting}
               placeholder="例如：20"
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
+              className="w-full border border-stone-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-stone-100"
             />
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           {submitting && (
-            <p className="text-sm text-purple-700 bg-purple-50 border border-purple-200 rounded px-3 py-2">
+            <p className="text-sm text-brand-700 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2">
               AI 生成中，请稍候（约需 30-60 秒）...
             </p>
           )}
@@ -184,7 +184,7 @@ function NewLesson() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-purple-600 text-white font-medium py-2 rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-brand-500 text-white font-medium py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? '生成中...' : '生成教案'}
           </button>
