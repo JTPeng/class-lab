@@ -1,8 +1,15 @@
+import { Route, Routes } from 'react-router-dom'
+import Home from './pages/Home'
+import NewLesson from './pages/NewLesson'
+import LessonDetail from './pages/LessonDetail'
+
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <h1 className="text-2xl font-bold text-purple-600">Class-Lab DTT 教案工具</h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/new" element={<NewLesson />} />
+      <Route path="/lessons/:id" element={<LessonDetail />} />
+    </Routes>
   )
 }
 
