@@ -182,6 +182,10 @@ Lesson {
 - 前端：回合流程演示分支切换、图卡轮播的组件测试。
 
 ## 9. 待实现时验证的开放项
+
 - 文本模型名（专属部署）——联通测试确认。
+  **已解决**：确认为 `qwen3.7-max`，OpenAI 兼容 `chat/completions` 接口，支持 `response_format: json_object`。
 - `qwen-image-2.0` 调用方式（同步 vs 异步轮询）、返回是 URL 还是二进制——实测确认。
+  **已解决**：实测为 DashScope 多模态生成**同步**接口 `POST {host}/api/v1/services/aigc/multimodal-generation/generation`，请求体 `{model, input:{messages:[{role:'user',content:[{text}]}]}}`，返回 `output.choices[0].message.content[0].image` 为 OSS 签名 URL，耗时约 60-70s；async 轮询与 image-synthesis 接口均不可用。
 - 图片存本地 `uploads/` 还是直接存模型 URL——按实测结果定。
+  **已解决**：OSS 签名 URL 会过期（约 2 小时），因此下载图片到 `serve/uploads/` 本地持久化，经 `/uploads/` 静态服务对外提供，教案记录中存本地路径。

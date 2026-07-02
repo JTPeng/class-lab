@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import type { LessonListItem } from '../types/lesson'
@@ -19,6 +19,8 @@ function Home() {
   const [lessons, setLessons] = useState<LessonListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
     api
@@ -27,6 +29,22 @@ function Home() {
       .catch((err) => setError(err instanceof Error ? err.message : '加载失败'))
       .finally(() => setLoading(false))
   }, [])
+
+  async function handleDelete(event: MouseEvent, id: string) {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!window.confirm('确定删除这份教案？')) return
+    setDeletingId(id)
+    setDeleteError(null)
+    try {
+      await api.deleteLesson(id)
+      setLessons((prev) => prev.filter((lesson) => lesson.id !== id))
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : '删除失败')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
@@ -45,6 +63,7 @@ function Home() {
 
         {loading && <p className="text-stone-500">加载中...</p>}
         {error && <p className="text-rose-600">{error}</p>}
+        {deleteError && <p className="text-rose-600 mb-4">{deleteError}</p>}
 
         {!loading && !error && lessons.length === 0 && (
           <p className="text-stone-500">
@@ -61,9 +80,17 @@ function Home() {
               <Link
                 key={lesson.id}
                 to={`/lessons/${lesson.id}`}
-                className="bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:shadow-soft hover:-translate-y-1 transition-all"
+                className="relative block bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:shadow-soft hover:-translate-y-1 transition-all"
               >
-                <h2 className="text-lg font-black text-stone-900 truncate">{lesson.title}</h2>
+                <button
+                  type="button"
+                  onClick={(event) => handleDelete(event, lesson.id)}
+                  disabled={deletingId === lesson.id}
+                  className="absolute top-3 right-3 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-full px-2.5 py-1 transition-colors disabled:opacity-50"
+                >
+                  {deletingId === lesson.id ? '删除中...' : '删除'}
+                </button>
+                <h2 className="text-lg font-black text-stone-900 truncate pr-14">{lesson.title}</h2>
                 <p className="text-sm text-stone-600 mt-2">
                   <span className="inline-block rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700">
                     {lesson.skill}
