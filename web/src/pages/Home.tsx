@@ -29,13 +29,15 @@ function Home() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-cream py-10 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-stone-900">Class-Lab DTT 教案工具</h1>
+          <h1 className="text-3xl font-black text-stone-900">
+            Class-Lab <span className="text-brand-500">DTT</span> 教案工具
+          </h1>
           <Link
             to="/new"
-            className="bg-brand-500 text-white font-medium px-4 py-2 rounded-full shadow-card hover:bg-brand-600 transition-colors"
+            className="bg-brand-500 text-white font-bold px-5 py-2.5 rounded-full shadow-soft hover:bg-brand-600 transition-colors"
           >
             ＋ 新建教案
           </Link>
@@ -59,11 +61,15 @@ function Home() {
               <Link
                 key={lesson.id}
                 to={`/lessons/${lesson.id}`}
-                className="bg-white rounded-2xl shadow-card ring-1 ring-stone-100 p-4 hover:shadow-soft hover:-translate-y-0.5 transition-all"
+                className="bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:shadow-soft hover:-translate-y-1 transition-all"
               >
-                <h2 className="font-semibold text-stone-900 truncate">{lesson.title}</h2>
-                <p className="text-sm text-stone-600 mt-1">技能：{lesson.skill}</p>
-                <p className="text-xs text-stone-400 mt-2">{formatDate(lesson.createdAt)}</p>
+                <h2 className="text-lg font-black text-stone-900 truncate">{lesson.title}</h2>
+                <p className="text-sm text-stone-600 mt-2">
+                  <span className="inline-block rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700">
+                    {lesson.skill}
+                  </span>
+                </p>
+                <p className="text-xs text-stone-400 mt-3">{formatDate(lesson.createdAt)}</p>
               </Link>
             ))}
           </div>

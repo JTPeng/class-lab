@@ -28,7 +28,7 @@ function LessonDetail() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-cream">
+      <div className="flex min-h-screen items-center justify-center bg-brand-50">
         <p className="text-stone-500">加载中...</p>
       </div>
     )
@@ -36,7 +36,7 @@ function LessonDetail() {
 
   if (error || !lesson) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-cream">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-brand-50">
         <p className="text-rose-600">{error ?? '未找到该教案'}</p>
         <Link to="/" className="text-brand-600 hover:underline">
           返回首页
@@ -46,9 +46,9 @@ function LessonDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-cream px-4 py-10">
-      <div className="mx-auto max-w-4xl space-y-8">
-        <Link to="/" className="text-sm font-medium text-brand-600 hover:underline">
+    <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 px-4 py-10">
+      <div className="mx-auto max-w-4xl space-y-10">
+        <Link to="/" className="text-sm font-bold text-brand-600 hover:underline">
           ← 返回首页
         </Link>
 

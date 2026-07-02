@@ -60,14 +60,14 @@ function NewLesson() {
   }
 
   return (
-    <div className="min-h-screen bg-cream py-10 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
       <div className="max-w-2xl mx-auto">
-        <Link to="/" className="text-sm text-brand-600 hover:underline">
+        <Link to="/" className="text-sm font-bold text-brand-600 hover:underline">
           ← 返回首页
         </Link>
-        <h1 className="text-2xl font-bold text-stone-900 mt-2 mb-6">新建教案</h1>
+        <h1 className="text-3xl font-black text-stone-900 mt-2 mb-6">新建教案</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-2xl shadow-card ring-1 ring-stone-100">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1">
               目标技能 <span className="text-red-500">*</span>

@@ -4,9 +4,11 @@ import SectionHeading from './SectionHeading'
 
 function InfoCard({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-card ring-1 ring-stone-100">
-      <p className="text-xs font-bold uppercase tracking-wide text-brand-600">{label}</p>
-      <div className="mt-2 text-stone-800">{children}</div>
+    <div className="rounded-2xl border-l-4 border-brand-400 bg-white p-6 shadow-card ring-1 ring-brand-100">
+      <p className="inline-block rounded-full bg-brand-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-brand-700">
+        {label}
+      </p>
+      <div className="mt-3 leading-relaxed text-stone-800">{children}</div>
     </div>
   )
 }

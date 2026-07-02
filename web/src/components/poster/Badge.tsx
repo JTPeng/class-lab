@@ -2,19 +2,19 @@
 type BadgeProps = {
   label: string
   value: string
-  tone?: 'light' | 'brand'
+  tone?: 'solid' | 'outline'
 }
 
-function Badge({ label, value, tone = 'light' }: BadgeProps) {
+function Badge({ label, value, tone = 'solid' }: BadgeProps) {
   const toneClass =
-    tone === 'light'
-      ? 'bg-white/15 text-white ring-1 ring-inset ring-white/30'
-      : 'bg-brand-100 text-brand-700 ring-1 ring-inset ring-brand-200'
+    tone === 'solid'
+      ? 'bg-white text-brand-700 shadow-md'
+      : 'bg-brand-400/30 text-white ring-2 ring-inset ring-white/70'
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium ${toneClass}`}>
-      <span className="font-semibold opacity-90">{label}</span>
-      <span>{value}</span>
+    <span className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold ${toneClass}`}>
+      <span className={tone === 'solid' ? 'text-brand-500' : 'text-brand-50'}>{label}</span>
+      <span className="font-bold">{value}</span>
     </span>
   )
 }
