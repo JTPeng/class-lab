@@ -4,8 +4,8 @@ import { api } from '../api/client'
 import SectionHeading from './poster/SectionHeading'
 import Lightbox from './Lightbox'
 
-// 图片尚未生成（Slice 4 才接入 qwen-image），refKey 约定未最终确定，
-// 因此按 index 优先匹配 `target:${idx}`，再退化为 refKey/目标文本互相包含的宽松匹配。
+// refKey 约定为 `target:${idx}`，优先按 index 精确匹配，
+// 再退化为 refKey/目标文本互相包含的宽松匹配（兼容历史数据）。
 function findImageForTarget(target: Target, idx: number, images: Image[]): Image | undefined {
   const byIndex = images.find((img) => img.refKey === `target:${idx}`)
   if (byIndex) return byIndex

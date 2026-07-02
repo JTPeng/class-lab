@@ -90,6 +90,15 @@ function Home() {
                 >
                   {deletingId === lesson.id ? '删除中...' : '删除'}
                 </button>
+                {lesson.coverUrl ? (
+                  <img
+                    src={lesson.coverUrl}
+                    alt={lesson.title}
+                    className="w-full h-36 object-cover rounded-xl mb-4"
+                  />
+                ) : (
+                  <div className="w-full h-36 rounded-xl mb-4 bg-brand-50" />
+                )}
                 <h2 className="text-lg font-black text-stone-900 truncate pr-14">{lesson.title}</h2>
                 <p className="text-sm text-stone-600 mt-2">
                   <span className="inline-block rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700">
