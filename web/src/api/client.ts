@@ -2,10 +2,12 @@ import type { Image, Lesson, LessonInput, LessonListItem } from '../types/lesson
 
 const BASE = '/api';
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, options?: { method?: string; body?: unknown }): Promise<T> {
+  const { method, body } = options ?? {};
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
+    method,
+    headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
     const text = await res.text();
@@ -20,7 +22,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 function generateLesson(input: LessonInput): Promise<Lesson> {
   return request<Lesson>('/lessons/generate', {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: input,
   });
 }
 
@@ -39,7 +41,7 @@ function deleteLesson(id: string): Promise<void> {
 async function generateImage(lessonId: string, refKey: string, prompt: string): Promise<Image> {
   const { image } = await request<{ image: Image }>(`/lessons/${lessonId}/images`, {
     method: 'POST',
-    body: JSON.stringify({ refKey, prompt }),
+    body: { refKey, prompt },
   });
   return image;
 }
