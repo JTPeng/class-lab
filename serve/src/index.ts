@@ -2,13 +2,31 @@ import 'dotenv/config';
 import { pathToFileURL } from 'node:url';
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import type Database from 'better-sqlite3';
+import { getDb } from './db/index.js';
+import { generateLesson as defaultGenerateLesson } from './services/generateLesson.js';
+import { registerLessonRoutes } from './routes/lessons.js';
 
-export function buildApp(): FastifyInstance {
+export interface BuildAppDeps {
+  db?: Database.Database;
+  generateLesson?: typeof defaultGenerateLesson;
+}
+
+export function buildApp(deps: BuildAppDeps = {}): FastifyInstance {
   const app = Fastify();
+  const db = deps.db ?? getDb();
+  const generateLesson = deps.generateLesson ?? defaultGenerateLesson;
 
   app.register(cors, { origin: true });
 
   app.get('/health', async () => ({ ok: true }));
+
+  app.register(
+    async (instance) => {
+      await registerLessonRoutes(instance, { db, generateLesson });
+    },
+    { prefix: '/api' },
+  );
 
   return app;
 }
