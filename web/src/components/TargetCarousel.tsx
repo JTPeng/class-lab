@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Target, Image } from '../types/lesson'
 import { api } from '../api/client'
 import SectionHeading from './poster/SectionHeading'
@@ -38,6 +38,8 @@ function TargetCarousel({
   const [localImages, setLocalImages] = useState<Record<string, Image>>({})
   const [generatingAll, setGeneratingAll] = useState(false)
   const [progress, setProgress] = useState({ done: 0, total: 0 })
+  // 记录正在生成中的 idx，作为去重锁：避免「一键生成」与「重试」对同一 idx 并发触发多个请求。
+  const pendingIdxsRef = useRef<Set<number>>(new Set())
 
   if (targets.length === 0) return null
 
@@ -55,6 +57,8 @@ function TargetCarousel({
   }
 
   async function generateOne(idx: number): Promise<void> {
+    if (pendingIdxsRef.current.has(idx)) return
+    pendingIdxsRef.current.add(idx)
     const refKey = `target:${idx}`
     const prompt = buildPrompt(targets[idx], skill)
     setLocalImages((prev) => ({ ...prev, [refKey]: { refKey, prompt, status: 'pending' } }))
@@ -63,11 +67,20 @@ function TargetCarousel({
       setLocalImages((prev) => ({ ...prev, [refKey]: result }))
     } catch {
       setLocalImages((prev) => ({ ...prev, [refKey]: { refKey, prompt, status: 'failed' } }))
+    } finally {
+      pendingIdxsRef.current.delete(idx)
     }
   }
 
   async function handleGenerateAll() {
-    const todoIdxs = targets.map((_, idx) => idx).filter((idx) => imageFor(idx)?.status !== 'done')
+    const todoIdxs = targets
+      .map((_, idx) => idx)
+      .filter(
+        (idx) =>
+          imageFor(idx)?.status !== 'done' &&
+          imageFor(idx)?.status !== 'pending' &&
+          !pendingIdxsRef.current.has(idx),
+      )
     if (todoIdxs.length === 0) return
     setGeneratingAll(true)
     setProgress({ done: 0, total: todoIdxs.length })
