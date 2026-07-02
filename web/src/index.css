@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 教案详情页打印/导出 PDF：保留暖橙底色与色块，卡片避免被分页截断。
+   隐藏交互元素统一用 Tailwind 的 `print:hidden` 类标记在各组件里。 */
+@media print {
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .shadow-card,
+  .shadow-soft {
+    break-inside: avoid;
+  }
+}

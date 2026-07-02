@@ -48,9 +48,18 @@ function LessonDetail() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 px-4 py-10">
       <div className="mx-auto max-w-4xl space-y-10">
-        <Link to="/" className="text-sm font-bold text-brand-600 hover:underline">
-          ← 返回首页
-        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
+          <Link to="/" className="text-sm font-bold text-brand-600 hover:underline">
+            ← 返回首页
+          </Link>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white shadow-soft transition hover:bg-brand-600"
+          >
+            ⬇ 下载 PDF
+          </button>
+        </div>
 
         <Hero
           title={lesson.title}
