@@ -25,15 +25,24 @@ function sanitizeRefKey(refKey: string): string {
   return refKey.replace(/[^a-zA-Z0-9]/g, '_');
 }
 
-// 把底层错误归类成给老师看的失败原因。内容安全审核拒绝（政治人物/敏感内容等）
-// 是无法通过重试解决的，需明确提示换描述；其余按可重试的临时错误处理。
-function failureReason(err: unknown): string {
+// 内容安全审核拒绝（政治人物/敏感内容等）无法通过重试解决——需明确提示换描述，
+// 且绝不能重试（否则每次都失败，白白浪费调用）。
+function isContentRejection(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
-  if (/DataInspectionFailed|inappropriate content|Green net|data_inspection/i.test(msg)) {
+  return /DataInspectionFailed|inappropriate content|Green net|data_inspection/i.test(msg);
+}
+
+// 把底层错误归类成给老师看的失败原因。
+function failureReason(err: unknown): string {
+  if (isContentRejection(err)) {
     return '内容被 AI 安全策略拒绝（可能涉及政治人物、名人或敏感内容），无法生成配图，请调整该目标的描述后重试。';
   }
   return '配图生成失败，请稍后重试。';
 }
+
+// 临时错误（限流/网络/下载失败等）最多自动重试 2 次（共 3 次尝试）；重试间隔递增退避。
+const MAX_IMAGE_RETRIES = 2;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function upsertImage(images: Image[], entry: Image): Image[] {
   const idx = images.findIndex((img) => img.refKey === entry.refKey);
@@ -71,30 +80,42 @@ export async function registerImageRoutes(app: FastifyInstance, deps: ImageRoute
       if (!lesson) {
         return reply.status(404).send({ error: 'Lesson not found' });
       }
+      const lessonId = lesson.id;
 
-      try {
+      // 生成 + 下载 + 落盘：成功返回本地路径，失败抛出（供重试/降级处理）。
+      async function attempt(): Promise<string> {
         const ossUrl = await generateImageUrl(prompt);
         const imageResponse = await fetchImpl(ossUrl);
         if (!imageResponse.ok) {
           throw new Error(`下载配图失败: ${imageResponse.status}`);
         }
         const bytes = Buffer.from(await imageResponse.arrayBuffer());
-
         await mkdir(uploadsDir, { recursive: true });
-        const filename = `${lesson.id}__${sanitizeRefKey(refKey)}.png`;
+        const filename = `${lessonId}__${sanitizeRefKey(refKey)}.png`;
         await writeFile(join(uploadsDir, filename), bytes);
-
-        const entry: Image = { refKey, prompt, status: 'done', url: `/uploads/${filename}` };
-        persistImageEntry(db, lesson.id, entry);
-
-        return reply.status(200).send({ image: entry });
-      } catch (err) {
-        app.log.error(err);
-        const entry: Image = { refKey, prompt, status: 'failed', reason: failureReason(err) };
-        persistImageEntry(db, lesson.id, entry);
-
-        return reply.status(200).send({ image: entry });
+        return `/uploads/${filename}`;
       }
+
+      let lastErr: unknown;
+      for (let tryNo = 0; tryNo <= MAX_IMAGE_RETRIES; tryNo++) {
+        try {
+          const url = await attempt();
+          const entry: Image = { refKey, prompt, status: 'done', url };
+          persistImageEntry(db, lessonId, entry);
+          return reply.status(200).send({ image: entry });
+        } catch (err) {
+          lastErr = err;
+          app.log.error(err);
+          // 内容安全拒绝：重试无意义，立即降级并说明原因。
+          if (isContentRejection(err)) break;
+          // 临时错误：还有重试次数则退避后再试。
+          if (tryNo < MAX_IMAGE_RETRIES) await sleep(2000 * (tryNo + 1));
+        }
+      }
+
+      const entry: Image = { refKey, prompt, status: 'failed', reason: failureReason(lastErr) };
+      persistImageEntry(db, lessonId, entry);
+      return reply.status(200).send({ image: entry });
     },
   );
 }

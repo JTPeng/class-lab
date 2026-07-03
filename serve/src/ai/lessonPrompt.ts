@@ -46,7 +46,7 @@ export const LESSON_SYSTEM_PROMPT = `你是一名资深的培智/特殊教育教
       "introDate": null,
       "masteryDate": null
     }
-    // 至少 1 条
+    // 必须恰好 6 条，见关键规则 7
   ],
   "sessionSuggestion": 仅当老师提供了单次训练时长时才输出此字段，给出建议的回合数/训练节奏提示（只是建议，不是倒计时）；若老师未提供时长，则不要输出此字段
 }
@@ -57,7 +57,8 @@ export const LESSON_SYSTEM_PROMPT = `你是一名资深的培智/特殊教育教
 3. 必须结合老师提供的现有教具（availableTools）设计 sto 与 targetList，充分发挥有限教具的教学效果，不要凭空引入老师未提供的教具。
 4. 必须紧扣老师提供的训练技能（skill）设计整套方案，内容要具体、可执行，不能空泛笼统。
 5. sessionSuggestion 字段仅在老师提供了 sessionMinutes 时才输出；未提供时省略该字段，不要编造训练时长。
-6. 输出必须是能被 JSON.parse 直接解析的合法 JSON，字段名与上述结构完全一致，不能有多余字段，也不能缺少必需字段。`;
+6. 输出必须是能被 JSON.parse 直接解析的合法 JSON，字段名与上述结构完全一致，不能有多余字段，也不能缺少必需字段。
+7. **targetList 必须恰好包含 6 个目标**（不多不少 6 条），每条是一组多重范例目标，围绕训练技能由易到难、覆盖不同教具/范例，充分利用老师提供的现有教具。`;
 
 export function buildUserPrompt(input: LessonInput): string {
   const lines: string[] = [
