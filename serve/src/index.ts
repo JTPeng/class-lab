@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
+import multipart from '@fastify/multipart';
 import type Database from 'better-sqlite3';
 import { getDb } from './db/index.js';
 import { generateLesson as defaultGenerateLesson } from './services/generateLesson.js';
@@ -15,6 +16,8 @@ import { registerTtsRoutes } from './routes/tts.js';
 import { registerAnimalImageRoutes } from './routes/animalImage.js';
 import { registerFruitImageRoutes } from './routes/fruitImage.js';
 import { registerPoseImageRoutes } from './routes/poseImage.js';
+import { registerVideoAnalysisRoutes } from './routes/videoAnalysis.js';
+import { markInterruptedJobsFailed, videosDir } from './lib/videoJobs.js';
 import type { generateImageUrl as defaultGenerateImageUrl } from './ai/imageClient.js';
 
 export interface BuildAppDeps {
@@ -30,9 +33,15 @@ export function buildApp(deps: BuildAppDeps = {}): FastifyInstance {
   const generateLesson = deps.generateLesson ?? defaultGenerateLesson;
 
   app.register(cors, { origin: true });
+  // 视频分析上传：不限制单文件大小（Infinity 关闭上限，否则默认约 1MB）。注册在根实例，子路由可用 request.file()。
+  app.register(multipart, { limits: { fileSize: Infinity } });
 
   mkdirSync(uploadsDir, { recursive: true });
   app.register(fastifyStatic, { root: uploadsDir, prefix: '/uploads/' });
+
+  // 视频落盘目录；并把上次进程遗留的 processing 记录标记为失败（内存 job 已丢）。
+  mkdirSync(videosDir, { recursive: true });
+  markInterruptedJobsFailed(db);
 
   // 绘本分享图目录：每次启动清空，避免临时图堆积（与原 picture-book 项目行为一致）。
   rmSync(sharedDir, { recursive: true, force: true });
@@ -55,6 +64,7 @@ export function buildApp(deps: BuildAppDeps = {}): FastifyInstance {
       registerAnimalImageRoutes(instance);
       registerFruitImageRoutes(instance);
       registerPoseImageRoutes(instance);
+      registerVideoAnalysisRoutes(instance, { db });
     },
     { prefix: '/api' },
   );

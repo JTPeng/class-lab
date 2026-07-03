@@ -10,6 +10,8 @@ import ShapeMatch from './pages/ShapeMatch'
 import ShadowMatch from './pages/ShadowMatch'
 import MemoryFlip from './pages/MemoryFlip'
 import PoseMimic from './pages/PoseMimic'
+import VideoAnalysis from './pages/VideoAnalysis'
+import VideoAnalysisDetail from './pages/VideoAnalysisDetail'
 
 function App() {
   return (
@@ -28,6 +30,9 @@ function App() {
         <Route path="/games/shadow-match" element={<ShadowMatch />} />
         <Route path="/games/memory-flip" element={<MemoryFlip />} />
         <Route path="/games/pose-mimic" element={<PoseMimic />} />
+        {/* 视频分析模块 */}
+        <Route path="/video" element={<VideoAnalysis />} />
+        <Route path="/video/:id" element={<VideoAnalysisDetail />} />
       </Route>
     </Routes>
   )

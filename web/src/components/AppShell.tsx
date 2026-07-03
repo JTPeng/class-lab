@@ -8,10 +8,12 @@ const tabs = [
   {
     label: 'DTT 教案',
     to: '/',
-    match: (p: string) => !p.startsWith('/picture-book') && !p.startsWith('/games'),
+    match: (p: string) =>
+      !p.startsWith('/picture-book') && !p.startsWith('/games') && !p.startsWith('/video'),
   },
   { label: '绘本打卡', to: '/picture-book', match: (p: string) => p.startsWith('/picture-book') },
   { label: '游戏乐园', to: '/games', match: (p: string) => p.startsWith('/games') },
+  { label: '视频分析', to: '/video', match: (p: string) => p.startsWith('/video') },
 ]
 
 // 头部登录态：全局门禁下未登录不会渲染到这里，故只展示「用户名 + 退出」。

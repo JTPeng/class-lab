@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import type { Lesson } from '../schema/lesson.js';
 import { createUsersTable } from './users.js';
 import { createModuleDataTable } from './moduleData.js';
+import { createVideoAnalysesTable } from './videoAnalyses.js';
 
 export type LessonListItem = {
   id: string;
@@ -32,6 +33,7 @@ export function getDb(path = 'lessons.db'): Database.Database {
   );
   createUsersTable(db);
   createModuleDataTable(db);
+  createVideoAnalysesTable(db);
   return db;
 }
 

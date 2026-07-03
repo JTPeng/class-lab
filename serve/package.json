@@ -10,13 +10,15 @@
     "test": "vitest run",
     "warmup:images": "tsx src/scripts/warmupAnimalImages.ts",
     "warmup:fruits": "tsx src/scripts/warmupFruitImages.ts",
-    "warmup:poses": "tsx src/scripts/warmupPoseImages.ts"
+    "warmup:poses": "tsx src/scripts/warmupPoseImages.ts",
+    "probe:omni": "tsx src/scripts/probeOmni.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@fastify/cors": "^11.2.0",
+    "@fastify/multipart": "^10.0.0",
     "@fastify/static": "^9.1.3",
     "better-sqlite3": "^12.11.1",
     "dotenv": "^17.4.2",

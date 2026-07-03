@@ -1,6 +1,12 @@
 import type { Image, Lesson, LessonInput, LessonListItem } from '../types/lesson';
+import type { ReportStyle, VideoAnalysis, VideoAnalysisListItem } from '../types/video';
+import { videoMock } from './videoMock';
 
 const BASE = '/api';
+
+// 后端 /api/video/* 未就绪时用前端 Mock 预览全流程；接口上线后改为 false 即联调（页面无需改动）。
+// 后端已就绪（serve/src/routes/videoAnalysis.ts），联调走真实接口。
+const USE_VIDEO_MOCK = false;
 
 async function request<T>(path: string, options?: { method?: string; body?: unknown }): Promise<T> {
   const { method, body } = options ?? {};
@@ -100,6 +106,46 @@ function putModuleData(userId: string, module: string, key: string, data: unknow
   return request<void>(`/users/${userId}/modules/${module}/${key}`, { method: 'PUT', body: { data } });
 }
 
+// ===== 视频分析模块 =====
+
+// 文件入口走 multipart（FormData）；不手动设 Content-Type，交给浏览器带 boundary。
+// style 须在 file 之前 append，后端才能从 file.fields 读到（见 routes/videoAnalysis.ts 注释）。
+function createVideoAnalysisFromFile(file: File, style?: ReportStyle): Promise<{ id: string }> {
+  if (USE_VIDEO_MOCK) return videoMock.createFromFile(file, style);
+  const form = new FormData();
+  if (style) form.append('style', style);
+  form.append('file', file);
+  return fetch(`${BASE}/video/analyses`, { method: 'POST', body: form }).then(async (res) => {
+    if (!res.ok) throw new Error(await res.text());
+    return res.json() as Promise<{ id: string }>;
+  });
+}
+
+function createVideoAnalysisFromUrl(url: string, style?: ReportStyle): Promise<{ id: string }> {
+  if (USE_VIDEO_MOCK) return videoMock.createFromUrl(url, style);
+  return request<{ id: string }>('/video/analyses', { method: 'POST', body: { url, style } });
+}
+
+function getVideoJob(id: string): Promise<VideoAnalysis> {
+  if (USE_VIDEO_MOCK) return videoMock.getVideoJob(id);
+  return request<VideoAnalysis>(`/video/jobs/${id}`);
+}
+
+function listVideoAnalyses(): Promise<VideoAnalysisListItem[]> {
+  if (USE_VIDEO_MOCK) return videoMock.listVideoAnalyses();
+  return request<VideoAnalysisListItem[]>('/video/analyses');
+}
+
+function getVideoAnalysis(id: string): Promise<VideoAnalysis> {
+  if (USE_VIDEO_MOCK) return videoMock.getVideoAnalysis(id);
+  return request<VideoAnalysis>(`/video/analyses/${id}`);
+}
+
+function deleteVideoAnalysis(id: string): Promise<void> {
+  if (USE_VIDEO_MOCK) return videoMock.deleteVideoAnalysis(id);
+  return request<void>(`/video/analyses/${id}`, { method: 'DELETE' });
+}
+
 // 后端错误响应体形如 {"error":"..."}，request() 会把整段响应体作为 Error.message 抛出。
 // 该工具从中提取出 error 文案，取不到时回退到 fallback。
 export function apiErrorMessage(err: unknown, fallback: string): string {
@@ -125,4 +171,10 @@ export const api = {
   login,
   getModuleData,
   putModuleData,
+  createVideoAnalysisFromFile,
+  createVideoAnalysisFromUrl,
+  getVideoJob,
+  listVideoAnalyses,
+  getVideoAnalysis,
+  deleteVideoAnalysis,
 };
