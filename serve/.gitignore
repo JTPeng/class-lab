@@ -2,5 +2,8 @@
 # 动物图缓存（运行时生成）
 animal-images/
 
+# 动作图缓存（运行时生成）
+pose-images/
+
 # TTS 语音缓存（运行时生成）
 tts-cache/

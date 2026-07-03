@@ -13,6 +13,7 @@ import { registerPicturebookRoutes, sharedDir } from './routes/picturebook.js';
 import { registerUserRoutes } from './routes/users.js';
 import { registerTtsRoutes } from './routes/tts.js';
 import { registerAnimalImageRoutes } from './routes/animalImage.js';
+import { registerPoseImageRoutes } from './routes/poseImage.js';
 import type { generateImageUrl as defaultGenerateImageUrl } from './ai/imageClient.js';
 
 export interface BuildAppDeps {
@@ -51,6 +52,7 @@ export function buildApp(deps: BuildAppDeps = {}): FastifyInstance {
       await registerUserRoutes(instance, { db });
       registerTtsRoutes(instance);
       registerAnimalImageRoutes(instance);
+      registerPoseImageRoutes(instance);
     },
     { prefix: '/api' },
   );
