@@ -162,6 +162,11 @@ function PoseMimic() {
     if (!window.confirm('确定要从第 1 关重新开始？当前分数会清零（最高分保留）。')) return
     setScore(0)
     setLevel(1)
+    doneRef.current = false
+    holdStartRef.current = null
+    setLevelDone(false)
+    setHoldMs(0)
+    setSimilarity(0)
   }
 
   const holdPct = Math.min(100, Math.round((holdMs / HOLD_MS) * 100))
