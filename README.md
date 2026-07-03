@@ -1,4 +1,11 @@
-# Class-Lab DTT 教案工具
+# Class-Lab
+
+Class-Lab 是一个多项目工作台，顶部导航栏 Tab 在不同项目模块间切换。目前包含两个模块：
+
+- **DTT 教案**：面向特需儿童（ABA/DTT 训练）的教案生成工具。
+- **绘本打卡**：绘本阅读打卡长图卡片生成器。
+
+## 模块一：DTT 教案工具
 
 面向特需儿童（ABA/DTT 训练）的教案生成工具：输入训练目标与现有教具，AI 自动生成一份海报化的 DTT（Discrete Trial Training）教案。
 
@@ -7,6 +14,16 @@
 - 交互 1：回合流程演示（SD 呈现 → 孩子正确/错误 → 强化/纠正 → 再来一回合）。
 - 交互 2：目标清单图卡轮播（同组多重范例切换 + 放大查看）。
 - 图配：可对每个目标单独触发 qwen-image 生成配图。
+
+## 模块二：绘本打卡图卡
+
+填写书名、心得、评分，选择 AI 画风与页数，由通义千问编排连贯故事分镜、通义万相逐场景生成插画，拼成一张赛博朋克风长图绘本卡片，长按保存或二维码局域网分享。
+
+- 主链路：表单 → qwen-turbo 编分镜 → wanx 逐场景串行生图 → 拼长图卡片。
+- 打卡累计次数记录在浏览器 localStorage（第 N 次打卡）。
+- 长图支持长按保存或二维码分享（后端临时存图于 `serve/shared/`，每次启动清空，同一局域网内扫码查看）。
+- 「扫码上手机」二维码用后端返回的局域网 IP + 当前前端端口拼成，手机连同一 Wi-Fi 扫码即可打开。
+- 生成能力需在 `serve/.env` 配置 `DASHSCOPE_API_KEY`（阿里百炼 DashScope 原生接口 Key）。
 
 ## 环境要求
 
@@ -28,7 +45,8 @@ cp .env.example .env
 | `MAAS_BASE_URL` | 文本模型 OpenAI 兼容 base URL（`.../compatible-mode/v1`） |
 | `TEXT_MODEL` | 文本模型名，如 `qwen3.7-max` |
 | `IMAGE_MODEL` | 配图模型名，如 `qwen-image-2.0-pro-2026-06-22` |
-| `DASHSCOPE_BASE_URL` | DashScope 多模态生成接口 host |
+| `DASHSCOPE_BASE_URL` | DashScope 多模态生成接口 host（DTT 图配用） |
+| `DASHSCOPE_API_KEY` | 阿里百炼 DashScope 原生接口 Key（绘本打卡模块用） |
 | `PORT` | 后端服务端口，默认 `8787` |
 
 启动开发服务：

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, rmSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
@@ -9,6 +9,10 @@ import { getDb } from './db/index.js';
 import { generateLesson as defaultGenerateLesson } from './services/generateLesson.js';
 import { registerLessonRoutes } from './routes/lessons.js';
 import { registerImageRoutes, uploadsDir } from './routes/images.js';
+import { registerPicturebookRoutes, sharedDir } from './routes/picturebook.js';
+import { registerUserRoutes } from './routes/users.js';
+import { registerTtsRoutes } from './routes/tts.js';
+import { registerAnimalImageRoutes } from './routes/animalImage.js';
 import type { generateImageUrl as defaultGenerateImageUrl } from './ai/imageClient.js';
 
 export interface BuildAppDeps {
@@ -28,6 +32,11 @@ export function buildApp(deps: BuildAppDeps = {}): FastifyInstance {
   mkdirSync(uploadsDir, { recursive: true });
   app.register(fastifyStatic, { root: uploadsDir, prefix: '/uploads/' });
 
+  // 绘本分享图目录：每次启动清空，避免临时图堆积（与原 picture-book 项目行为一致）。
+  rmSync(sharedDir, { recursive: true, force: true });
+  mkdirSync(sharedDir, { recursive: true });
+  app.register(fastifyStatic, { root: sharedDir, prefix: '/shared/', decorateReply: false });
+
   app.get('/health', async () => ({ ok: true }));
 
   app.register(
@@ -38,6 +47,10 @@ export function buildApp(deps: BuildAppDeps = {}): FastifyInstance {
         generateImageUrl: deps.generateImageUrl,
         fetchImpl: deps.fetchImpl,
       });
+      await registerPicturebookRoutes(instance);
+      await registerUserRoutes(instance, { db });
+      registerTtsRoutes(instance);
+      registerAnimalImageRoutes(instance);
     },
     { prefix: '/api' },
   );

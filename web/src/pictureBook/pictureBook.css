@@ -1,0 +1,200 @@
+/* ============ 绘本打卡：赛博朋克主题（作用域限定在 .pb-root 内，不影响 DTT 页面） ============ */
+.pb-root {
+  --cyan: #00f0ff;
+  --magenta: #ff2bd6;
+  --bg: #0a0a14;
+  --panel: rgba(0, 240, 255, 0.04);
+  --ink: #d8f6ff;
+  --dim: #8be9ff;
+
+  min-height: calc(100vh - 3.5rem);
+  color: var(--ink);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.06) 1px, transparent 1px),
+    radial-gradient(circle at 50% 0%, rgba(255, 43, 214, 0.12), transparent 60%);
+  background-size: 40px 40px, 40px 40px, 100% 100%;
+  font-family: "Courier New", ui-monospace, "PingFang SC", "Microsoft YaHei", monospace;
+}
+
+.pb-root * { box-sizing: border-box; }
+
+/* 扫描线覆盖层 */
+.pb-root .scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  background: repeating-linear-gradient(
+    0deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 2px, rgba(0, 240, 255, 0.035) 3px
+  );
+}
+
+.pb-root .page { max-width: 480px; margin: 0 auto; padding: 16px; position: relative; }
+
+/* 故障感标题 */
+.pb-root .topbar { display: flex; align-items: center; justify-content: space-between; }
+.pb-root .page__title {
+  position: relative;
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: 3px;
+  color: #fff;
+  text-shadow: 0 0 8px var(--cyan), 0 0 16px var(--cyan);
+}
+.pb-root .page__title::before,
+.pb-root .page__title::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  overflow: hidden;
+  opacity: 0.8;
+}
+.pb-root .page__title::before { color: var(--magenta); transform: translate(-2px, 0); }
+.pb-root .page__title::after { color: var(--cyan); transform: translate(2px, 0); }
+.pb-root .page__subtitle { color: var(--magenta); font-size: 13px; letter-spacing: 1px; margin: 4px 0 18px; }
+
+/* 表单 */
+.pb-root .form { display: flex; flex-direction: column; gap: 16px; }
+.pb-root .field { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.pb-root .field > span {
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+}
+.pb-root .field input, .pb-root .field textarea {
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: 0;
+  color: #e8faff;
+  font-size: 15px;
+  font-family: inherit;
+}
+.pb-root .field input:focus, .pb-root .field textarea:focus {
+  outline: none;
+  border-color: var(--magenta);
+  box-shadow: 0 0 12px rgba(255, 43, 214, 0.5);
+}
+.pb-root .field input::placeholder, .pb-root .field textarea::placeholder { color: #4a6a76; }
+
+/* 星级 */
+.pb-root .stars button {
+  font-size: 26px; background: none; border: none; color: #2a2a3a; cursor: pointer; padding: 0 2px;
+}
+.pb-root .stars button.on { color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+
+/* 单选 chip 组（画风 / 张数 / 像素比） */
+.pb-root .options { display: flex; flex-wrap: wrap; gap: 8px; }
+.pb-root .options button {
+  padding: 8px 14px;
+  background: var(--panel);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.pb-root .options button.on {
+  background: rgba(255, 43, 214, 0.15);
+  border-color: var(--magenta);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255, 43, 214, 0.6);
+}
+
+/* 按钮 */
+.pb-root .btn {
+  padding: 12px;
+  border: none;
+  font-size: 15px;
+  font-family: inherit;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.pb-root .btn--primary {
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  color: #05050c;
+  font-weight: bold;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.5);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.pb-root .btn--ghost {
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  padding: 8px 14px;
+}
+.pb-root .btn[disabled] { opacity: .5; cursor: default; }
+
+.pb-root .status { min-height: 20px; text-align: center; color: var(--magenta); font-size: 13px; }
+
+/* ============ 绘本长图卡片（赛博朋克，导出友好：不用 clip-path） ============ */
+.pb-root .book-block { margin: 22px 0; }
+.pb-root .book-card {
+  width: 100%;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: linear-gradient(160deg, #12122a, #0a0a16);
+  border: 1px solid var(--cyan);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.35), inset 0 0 24px rgba(255, 43, 214, 0.08);
+  color: var(--ink);
+}
+.pb-root .book-header {
+  display: flex; flex-direction: column; gap: 8px; align-items: center;
+  padding-bottom: 12px; border-bottom: 1px solid rgba(0, 240, 255, 0.35);
+}
+.pb-root .book-title { margin: 0; font-size: 22px; text-align: center; color: #fff; text-shadow: 0 0 10px var(--cyan); }
+.pb-root .book-stars { font-size: 22px; color: var(--magenta); text-shadow: 0 0 8px var(--magenta); }
+.pb-root .book-thoughts {
+  margin: 0; font-size: 14px; line-height: 1.5; color: var(--dim); text-align: center;
+  padding-left: 10px; border-left: 3px solid var(--magenta);
+}
+.pb-root .book-page { display: flex; flex-direction: column; gap: 8px; }
+.pb-root .book-img { width: 100%; height: auto; display: block; border: 1px solid rgba(255, 43, 214, 0.5); }
+.pb-root .book-scene {
+  margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink);
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.pb-root .book-pageno {
+  flex: none; width: 22px; height: 22px; line-height: 22px; text-align: center;
+  background: rgba(0, 240, 255, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px;
+}
+.pb-root .book-footer {
+  display: flex; justify-content: space-between; align-items: center; font-size: 13px;
+  padding-top: 12px; border-top: 1px solid rgba(0, 240, 255, 0.35);
+}
+.pb-root .book-date { color: var(--dim); }
+.pb-root .book-badge {
+  padding: 4px 10px;
+  background: rgba(255, 43, 214, 0.2);
+  border: 1px solid var(--magenta);
+  color: #fff;
+}
+
+/* 导出结果 / 分享 */
+.pb-root .card-actions { margin-top: 10px; }
+.pb-root .card-actions .btn { width: 100%; }
+.pb-root .card-result { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.pb-root .export__img { width: 100%; border: 1px solid rgba(0, 240, 255, 0.4); }
+.pb-root .export__tip { text-align: center; color: var(--dim); font-size: 13px; margin: 0; }
+.pb-root .share-box { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.pb-root .share-qr { padding: 10px; background: #fff; }
+.pb-root .qr-url { font-size: 12px; color: var(--dim); word-break: break-all; text-align: center; }
+
+/* 访问二维码弹层 */
+.pb-root .qr-modal {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, .7);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.pb-root .qr-box {
+  background: #10101f; padding: 22px; border: 1px solid var(--cyan);
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.5);
+  text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center;
+}
+.pb-root .qr-box .qr-canvas { background: #fff; padding: 8px; }

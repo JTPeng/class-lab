@@ -24,6 +24,9 @@ serve/*.db
 # 上传的图片
 serve/uploads/
 
+# 绘本分享临时图（每次启动清空）
+serve/shared/
+
 # 日志与系统文件
 *.log
 .DS_Store
@@ -31,3 +34,6 @@ serve/uploads/
 # 编辑器
 .vscode/
 .idea/
+
+# 本地设计/工具类 skills，不属于应用代码
+skills/
