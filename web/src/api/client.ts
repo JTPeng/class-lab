@@ -87,8 +87,8 @@ export interface AuthUser {
   meta: string | null;
 }
 
-function login(username: string): Promise<AuthUser> {
-  return request<AuthUser>('/auth/login', { method: 'POST', body: { username } });
+function login(username: string, password: string): Promise<AuthUser> {
+  return request<AuthUser>('/auth/login', { method: 'POST', body: { username, password } });
 }
 
 // 取某用户在某模块某 key 的数据；无数据时 data 为 null。

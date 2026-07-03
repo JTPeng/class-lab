@@ -8,7 +8,7 @@ const USER_KEY = 'clab_user'
 
 interface AuthState {
   user: AuthUser | null
-  login: (username: string) => Promise<void>
+  login: (username: string, password: string) => Promise<void>
   logout: () => void
 }
 
@@ -33,8 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function login(username: string): Promise<void> {
-    const u = await api.login(username)
+  async function login(username: string, password: string): Promise<void> {
+    const u = await api.login(username, password)
     localStorage.setItem(USER_KEY, JSON.stringify(u))
     setUser(u)
     // 先把后端最新数据拉进本地缓存，再整页刷新，让各页面以最新数据重新渲染。

@@ -1,23 +1,25 @@
 import { useState } from 'react'
 import { useAuth } from './AuthContext'
+import { apiErrorMessage } from '../api/client'
 
 // 全局登录门禁：未登录时占满整屏，登录后（login 内部会整页刷新）进入应用。
 function LoginScreen() {
   const { login } = useAuth()
   const [name, setName] = useState('')
+  const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = name.trim()
-    if (!trimmed || busy) return
+    if (!trimmed || !password || busy) return
     setBusy(true)
     setError('')
     try {
-      await login(trimmed)
-    } catch {
-      setError('登录失败，请稍后重试')
+      await login(trimmed, password)
+    } catch (err) {
+      setError(apiErrorMessage(err, '登录失败，请稍后重试'))
       setBusy(false)
     }
   }
@@ -38,9 +40,16 @@ function LoginScreen() {
             autoFocus
             className="w-full px-4 py-2.5 rounded-full border border-brand-200 text-center focus:outline-none focus:ring-2 focus:ring-brand-300"
           />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="输入密码"
+            className="w-full px-4 py-2.5 rounded-full border border-brand-200 text-center focus:outline-none focus:ring-2 focus:ring-brand-300"
+          />
           <button
             type="submit"
-            disabled={busy || !name.trim()}
+            disabled={busy || !name.trim() || !password}
             className="w-full py-2.5 rounded-full font-bold bg-brand-500 text-white disabled:opacity-40 hover:bg-brand-600 transition-colors"
           >
             {busy ? '登录中…' : '登录'}
