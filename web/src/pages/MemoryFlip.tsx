@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { loadProgress, saveProgress } from '../games/storage'
-import { localCardSource, type CardFace } from '../games/cards'
+import { fruitCardSource, type CardFace } from '../games/cards'
 import { shuffle } from '../games/shapes'
 import ShapeIcon from '../components/ShapeIcon'
 
@@ -13,7 +13,7 @@ import ShapeIcon from '../components/ShapeIcon'
 const GAME_ID = 'memory-flip'
 const SCORE_PER_MATCH = 10
 const FLIP_BACK_MS = 800 // 翻错后自动翻回的等待时长
-const source = localCardSource
+const source = fruitCardSource
 
 // 铺在桌面上的一张卡：cardId 唯一，同 face.key 的两张即为一对。
 interface Card {
@@ -140,7 +140,7 @@ function MemoryFlip() {
         ) : (
           <div className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 p-6">
             <p className="text-center text-sm text-stone-500 mb-5">
-              点开两张卡片，找出「一样的形状、一样的颜色」配成一对 👆
+              点开两张卡片，找出「一样的水果」配成一对 👆
             </p>
 
             <div
@@ -170,15 +170,7 @@ function MemoryFlip() {
                     style={{ width: 80, height: 80 }}
                   >
                     {faceUp ? (
-                      card.face.imageUrl ? (
-                        <img
-                          src={card.face.imageUrl}
-                          alt={card.face.label}
-                          className="w-[64px] h-[64px] object-contain"
-                        />
-                      ) : (
-                        <ShapeIcon kind={card.face.kind} color={card.face.color} variant="solid" size={64} />
-                      )
+                      <FaceView face={card.face} />
                     ) : (
                       <span className="text-3xl text-white select-none">❓</span>
                     )}
@@ -191,6 +183,30 @@ function MemoryFlip() {
       </div>
     </div>
   )
+}
+
+// 卡面正面渲染，兜底顺序：AI 图 → emoji → 形状+颜色。
+// AI 图加载失败（未就绪/出错）时回退到 emoji，保证始终可辨识。
+function FaceView({ face }: { face: CardFace }) {
+  const [imgError, setImgError] = useState(false)
+
+  if (face.imageUrl && !imgError) {
+    return (
+      <img
+        src={face.imageUrl}
+        alt={face.label}
+        className="w-[64px] h-[64px] object-contain"
+        onError={() => setImgError(true)}
+      />
+    )
+  }
+  if (face.emoji) {
+    return <span className="text-4xl select-none">{face.emoji}</span>
+  }
+  if (face.kind && face.color) {
+    return <ShapeIcon kind={face.kind} color={face.color} variant="solid" size={64} />
+  }
+  return <span className="text-3xl select-none">❓</span>
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

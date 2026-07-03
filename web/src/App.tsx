@@ -8,6 +8,7 @@ import Games from './pages/Games'
 import AnimalSound from './pages/AnimalSound'
 import ShapeMatch from './pages/ShapeMatch'
 import ShadowMatch from './pages/ShadowMatch'
+import MemoryFlip from './pages/MemoryFlip'
 import PoseMimic from './pages/PoseMimic'
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
         <Route path="/games/animal-sound" element={<AnimalSound />} />
         <Route path="/games/shape-match" element={<ShapeMatch />} />
         <Route path="/games/shadow-match" element={<ShadowMatch />} />
+        <Route path="/games/memory-flip" element={<MemoryFlip />} />
         <Route path="/games/pose-mimic" element={<PoseMimic />} />
       </Route>
     </Routes>

@@ -9,6 +9,7 @@
     "start": "tsx src/index.ts",
     "test": "vitest run",
     "warmup:images": "tsx src/scripts/warmupAnimalImages.ts",
+    "warmup:fruits": "tsx src/scripts/warmupFruitImages.ts",
     "warmup:poses": "tsx src/scripts/warmupPoseImages.ts"
   },
   "keywords": [],
