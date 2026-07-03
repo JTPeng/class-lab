@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { api } from '../api/client'
+import { buildTargetImagePrompt, targetRefKey } from '../lib/lessonImages'
 import type { LessonInput } from '../types/lesson'
 
 const CONTEXT_OPTIONS: LessonInput['context'][] = ['机构', '居家', '机构/居家']
+const MAX_AUTO_IMAGE_COUNT = 10
 
 function NewLesson() {
   const navigate = useNavigate()
@@ -14,8 +16,11 @@ function NewLesson() {
   const [context, setContext] = useState<LessonInput['context']>('机构')
   const [reinforcerPref, setReinforcerPref] = useState('')
   const [sessionMinutes, setSessionMinutes] = useState('')
+  const [imageCount, setImageCount] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
+  const [phase, setPhase] = useState<'lesson' | 'images'>('lesson')
+  const [imageProgress, setImageProgress] = useState({ done: 0, total: 0 })
   const [error, setError] = useState<string | null>(null)
 
   function addTool() {
@@ -49,9 +54,26 @@ function NewLesson() {
     }
 
     setSubmitting(true)
+    setPhase('lesson')
     setError(null)
     try {
       const lesson = await api.generateLesson(input)
+
+      const requested = Math.min(Math.max(Number(imageCount) || 0, 0), MAX_AUTO_IMAGE_COUNT)
+      const count = Math.min(requested, lesson.targetList.length)
+      if (count > 0) {
+        setPhase('images')
+        setImageProgress({ done: 0, total: count })
+        let done = 0
+        await Promise.allSettled(
+          lesson.targetList.slice(0, count).map(async (target, idx) => {
+            await api.generateImage(lesson.id, targetRefKey(idx), buildTargetImagePrompt(target, input.skill))
+            done += 1
+            setImageProgress({ done, total: count })
+          }),
+        )
+      }
+
       navigate('/lessons/' + lesson.id)
     } catch (err) {
       setError(err instanceof Error ? err.message : '生成失败，请重试')
@@ -173,11 +195,32 @@ function NewLesson() {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+              自动生成配图数量（可选，0-{MAX_AUTO_IMAGE_COUNT}）
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={MAX_AUTO_IMAGE_COUNT}
+              value={imageCount}
+              onChange={(e) => setImageCount(e.target.value)}
+              disabled={submitting}
+              placeholder="0"
+              className="w-full border border-stone-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-stone-100"
+            />
+            <p className="mt-1 text-xs text-stone-400">
+              生成教案后自动为目标清单中前 N 个目标生成配图（超过目标数量时按实际数量生成）；未填写或填 0 则不自动生成，可在教案详情页手动生成。
+            </p>
+          </div>
+
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           {submitting && (
             <p className="text-sm text-brand-700 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2">
-              AI 生成中，请稍候（约需 30-60 秒）...
+              {phase === 'images'
+                ? `配图生成中 ${imageProgress.done}/${imageProgress.total}（每张约需 1 分钟）...`
+                : 'AI 生成教案中，请稍候（约需 30-60 秒）...'}
             </p>
           )}
 
@@ -186,7 +229,13 @@ function NewLesson() {
             disabled={submitting}
             className="w-full bg-brand-500 text-white font-medium py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? '生成中...' : '生成教案'}
+            {submitting
+              ? phase === 'images'
+                ? '生成配图中...'
+                : '生成中...'
+              : Number(imageCount) > 0
+                ? '生成教案 + 配图'
+                : '生成教案'}
           </button>
         </form>
       </div>

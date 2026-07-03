@@ -1,21 +1,18 @@
 import { useRef, useState } from 'react'
 import type { Target, Image } from '../types/lesson'
 import { api } from '../api/client'
+import { buildTargetImagePrompt, targetRefKey } from '../lib/lessonImages'
 import SectionHeading from './poster/SectionHeading'
 import Lightbox from './Lightbox'
 
-// refKey 约定为 `target:${idx}`，优先按 index 精确匹配，
+// refKey 约定为 `target:${idx}`（见 lib/lessonImages），优先按 index 精确匹配，
 // 再退化为 refKey/目标文本互相包含的宽松匹配（兼容历史数据）。
 function findImageForTarget(target: Target, idx: number, images: Image[]): Image | undefined {
-  const byIndex = images.find((img) => img.refKey === `target:${idx}`)
+  const byIndex = images.find((img) => img.refKey === targetRefKey(idx))
   if (byIndex) return byIndex
   return images.find(
     (img) => target.target && (img.refKey.includes(target.target) || target.target.includes(img.refKey)),
   )
-}
-
-function buildPrompt(target: Target, skill: string): string {
-  return `${target.target}（${skill}），儿童教具风格插画，简洁卡通，白色背景，色彩明亮`
 }
 
 // 交互 2·图卡轮播：左右切换目标，命中真实图片可点击放大，否则显示占位/加载态。
@@ -59,8 +56,8 @@ function TargetCarousel({
   async function generateOne(idx: number): Promise<void> {
     if (pendingIdxsRef.current.has(idx)) return
     pendingIdxsRef.current.add(idx)
-    const refKey = `target:${idx}`
-    const prompt = buildPrompt(targets[idx], skill)
+    const refKey = targetRefKey(idx)
+    const prompt = buildTargetImagePrompt(targets[idx], skill)
     setLocalImages((prev) => ({ ...prev, [refKey]: { refKey, prompt, status: 'pending' } }))
     try {
       const result = await api.generateImage(lessonId, refKey, prompt)
