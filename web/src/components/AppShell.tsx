@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import LoginScreen from '../auth/LoginScreen'
 
 // 顶部常驻切换菜单（DTT 暖色风格）。两个 Tab 在「DTT 教案」与「绘本打卡」两个模块间切换，
 // 结构可扩展第三个项目。下方 <Outlet/> 渲染当前模块页面。
@@ -14,60 +14,29 @@ const tabs = [
   { label: '游戏乐园', to: '/games', match: (p: string) => p.startsWith('/games') },
 ]
 
-// 顶部登录入口：未登录显示用户名输入框，输入后自动创建并登录；已登录显示用户名 + 退出。
+// 头部登录态：全局门禁下未登录不会渲染到这里，故只展示「用户名 + 退出」。
 function AuthArea() {
-  const { user, login, logout } = useAuth()
-  const [name, setName] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  if (user) {
-    return (
-      <div className="flex items-center gap-2 text-sm">
-        <span className="font-bold text-stone-700">👤 {user.displayName}</span>
-        <button
-          onClick={logout}
-          className="px-3 py-1 rounded-full font-bold text-stone-500 hover:bg-brand-100 transition-colors"
-        >
-          退出
-        </button>
-      </div>
-    )
-  }
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmed = name.trim()
-    if (!trimmed || busy) return
-    setBusy(true)
-    try {
-      await login(trimmed)
-      setName('')
-    } finally {
-      setBusy(false)
-    }
-  }
-
+  const { user, logout } = useAuth()
+  if (!user) return null
   return (
-    <form onSubmit={submit} className="flex items-center gap-2">
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="输入用户名登录"
-        className="w-32 px-3 py-1 rounded-full border border-brand-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
-      />
+    <div className="flex items-center gap-2 text-sm">
+      <span className="font-bold text-stone-700">👤 {user.displayName}</span>
       <button
-        type="submit"
-        disabled={busy || !name.trim()}
-        className="px-3 py-1 rounded-full text-sm font-bold bg-brand-500 text-white disabled:opacity-40 hover:bg-brand-600 transition-colors"
+        onClick={logout}
+        className="px-3 py-1 rounded-full font-bold text-stone-500 hover:bg-brand-100 transition-colors"
       >
-        登录
+        退出
       </button>
-    </form>
+    </div>
   )
 }
 
 function AppShell() {
   const { pathname } = useLocation()
+  const { user } = useAuth()
+
+  // 全局门禁：未登录只显示登录页，不渲染菜单与任何模块。
+  if (!user) return <LoginScreen />
 
   return (
     <div className="min-h-screen flex flex-col">
