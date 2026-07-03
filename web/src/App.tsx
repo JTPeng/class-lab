@@ -7,6 +7,8 @@ import PictureBook from './pages/PictureBook'
 import Games from './pages/Games'
 import AnimalSound from './pages/AnimalSound'
 import ShapeMatch from './pages/ShapeMatch'
+import ShadowMatch from './pages/ShadowMatch'
+import PoseMimic from './pages/PoseMimic'
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
         <Route path="/games" element={<Games />} />
         <Route path="/games/animal-sound" element={<AnimalSound />} />
         <Route path="/games/shape-match" element={<ShapeMatch />} />
+        <Route path="/games/shadow-match" element={<ShadowMatch />} />
+        <Route path="/games/pose-mimic" element={<PoseMimic />} />
       </Route>
     </Routes>
   )

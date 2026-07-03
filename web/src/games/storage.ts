@@ -8,7 +8,7 @@ const PREFIX = 'clab_game_';
 const USER_KEY = 'clab_user'; // AuthContext 写入的当前用户
 
 // 已知可玩游戏，登录时用于从后端批量 hydrate。
-export const KNOWN_GAME_IDS = ['animal-sound', 'shape-match'];
+export const KNOWN_GAME_IDS = ['animal-sound', 'shape-match', 'pose-mimic'];
 
 export interface GameProgress {
   level: number; // 当前关卡，从 1 开始

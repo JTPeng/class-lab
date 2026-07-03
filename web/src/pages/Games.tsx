@@ -30,11 +30,27 @@ const GAMES: GameMeta[] = [
     ready: true,
   },
   {
+    id: 'shadow-match',
+    to: '/games/shadow-match',
+    title: '影子配对',
+    desc: '把小动物拖到它的影子里！（AI 生成图片）',
+    emoji: '🌓',
+    ready: true,
+  },
+  {
     id: 'memory-flip',
     to: '/games/memory-flip',
     title: '记忆翻牌',
     desc: '翻开两张卡片，找出一样的图形配成一对！',
     emoji: '🃏',
+    ready: true,
+  },
+  {
+    id: 'pose-mimic',
+    to: '/games/pose-mimic',
+    title: '跟我做动作',
+    desc: '看 AI 画的小人做动作，用摄像头模仿它，做对就得分！',
+    emoji: '🤸',
     ready: true,
   },
   // 更多小游戏敬请期待……（ready:false 显示占位卡片）
