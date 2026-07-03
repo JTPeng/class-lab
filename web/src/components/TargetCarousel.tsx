@@ -147,7 +147,9 @@ function TargetCarousel({
                     ) : isFailed ? (
                       <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
                         <span className="text-3xl">⚠️</span>
-                        <p className="text-sm font-bold text-rose-400">配图生成失败</p>
+                        <p className="text-sm font-bold text-rose-400">
+                          {image?.reason ?? '配图生成失败'}
+                        </p>
                         <button
                           type="button"
                           onClick={() => generateOne(idx)}

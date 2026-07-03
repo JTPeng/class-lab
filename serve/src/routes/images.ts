@@ -25,6 +25,16 @@ function sanitizeRefKey(refKey: string): string {
   return refKey.replace(/[^a-zA-Z0-9]/g, '_');
 }
 
+// 把底层错误归类成给老师看的失败原因。内容安全审核拒绝（政治人物/敏感内容等）
+// 是无法通过重试解决的，需明确提示换描述；其余按可重试的临时错误处理。
+function failureReason(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/DataInspectionFailed|inappropriate content|Green net|data_inspection/i.test(msg)) {
+    return '内容被 AI 安全策略拒绝（可能涉及政治人物、名人或敏感内容），无法生成配图，请调整该目标的描述后重试。';
+  }
+  return '配图生成失败，请稍后重试。';
+}
+
 function upsertImage(images: Image[], entry: Image): Image[] {
   const idx = images.findIndex((img) => img.refKey === entry.refKey);
   if (idx === -1) return [...images, entry];
@@ -80,7 +90,7 @@ export async function registerImageRoutes(app: FastifyInstance, deps: ImageRoute
         return reply.status(200).send({ image: entry });
       } catch (err) {
         app.log.error(err);
-        const entry: Image = { refKey, prompt, status: 'failed' };
+        const entry: Image = { refKey, prompt, status: 'failed', reason: failureReason(err) };
         persistImageEntry(db, lesson.id, entry);
 
         return reply.status(200).send({ image: entry });

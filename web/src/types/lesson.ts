@@ -52,6 +52,7 @@ export type Image = {
   prompt: string;
   status: 'pending' | 'done' | 'failed';
   url?: string;
+  reason?: string;
 };
 
 // —— AI 需产出的子集(不含 id/schemaVersion/templateType/createdAt/input/images) ——

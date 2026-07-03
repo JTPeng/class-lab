@@ -55,6 +55,7 @@ export const ImageSchema = z.object({
   prompt: z.string(),
   status: z.enum(['pending', 'done', 'failed']),
   url: z.string().optional(),
+  reason: z.string().optional(), // 失败原因（如内容安全拒绝），供前端提示
 });
 export type Image = z.infer<typeof ImageSchema>;
 
