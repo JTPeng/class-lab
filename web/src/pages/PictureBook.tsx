@@ -3,7 +3,6 @@ import { api, apiErrorMessage } from '../api/client'
 import { counts, ratios, styles, type RatioOption } from '../pictureBook/config'
 import { addRecord, getNextCount, today } from '../pictureBook/storage'
 import PictureCard, { QrImage, type PictureBookData } from '../components/PictureCard'
-import '../pictureBook/pictureBook.css'
 
 // 单选 chip 组
 function Options<T>({
@@ -20,14 +19,19 @@ function Options<T>({
   onSelect: (item: T) => void
 }) {
   return (
-    <div className="options">
+    <div className="flex flex-wrap gap-2">
       {items.map((item) => {
         const key = getKey(item)
+        const active = key === selectedKey
         return (
           <button
             key={key}
             type="button"
-            className={key === selectedKey ? 'on' : ''}
+            className={
+              active
+                ? 'px-4 py-1.5 rounded-full text-sm font-bold bg-brand-500 text-white shadow-soft transition-colors'
+                : 'px-4 py-1.5 rounded-full text-sm font-bold bg-brand-100 text-brand-700 hover:bg-brand-200 transition-colors'
+            }
             onClick={() => onSelect(item)}
           >
             {getLabel(item)}
@@ -57,19 +61,29 @@ function LanQrModal({ onClose }: { onClose: () => void }) {
   }, [])
 
   return (
-    <div className="qr-modal" onClick={onClose}>
-      <div className="qr-box" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/40 backdrop-blur-sm px-4"
+      onClick={onClose}
+    >
+      <div
+        className="flex flex-col items-center gap-4 bg-white rounded-2xl border-t-4 border-brand-400 shadow-soft p-6 text-center"
+        onClick={(e) => e.stopPropagation()}
+      >
         {lanUrl ? (
           <>
-            <div className="qr-canvas">
-              <QrImage text={lanUrl} size={200} />
-            </div>
-            <p className="qr-url">{lanUrl}</p>
+            <QrImage text={lanUrl} size={200} />
+            <p className="text-sm text-stone-500 break-all">{lanUrl}</p>
           </>
         ) : (
-          <p className="qr-url">{lanUrl === undefined ? '获取地址中…' : '未检测到局域网地址'}</p>
+          <p className="text-sm text-stone-500">
+            {lanUrl === undefined ? '获取地址中…' : '未检测到局域网地址'}
+          </p>
         )}
-        <button className="btn" type="button" onClick={onClose}>
+        <button
+          className="px-5 py-2 rounded-full font-bold bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors"
+          type="button"
+          onClick={onClose}
+        >
           关闭
         </button>
       </div>
@@ -120,50 +134,55 @@ function PictureBook() {
   }
 
   return (
-    <div className="pb-root">
-      <div className="scanlines" aria-hidden="true" />
-      <main className="page">
-        <div className="topbar">
-          <h1 className="page__title" data-text="READING·PUNK">
-            READING·PUNK
+    <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-3xl font-black text-stone-900">
+            📖 绘本<span className="text-brand-500">打卡</span>
           </h1>
-          <button className="btn btn--ghost" type="button" onClick={() => setQrOpen(true)}>
+          <button
+            className="px-4 py-2 rounded-full text-sm font-bold bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors"
+            type="button"
+            onClick={() => setQrOpen(true)}
+          >
             扫码上手机
           </button>
         </div>
-        <p className="page__subtitle">// 绘本阅读打卡终端</p>
+        <p className="text-stone-600 mb-8">记录每一次亲子阅读，生成专属绘本长图。</p>
 
         {qrOpen && <LanQrModal onClose={() => setQrOpen(false)} />}
 
-        <section className="form">
-          <label className="field">
-            <span>书名</span>
+        <section className="space-y-6 bg-white p-6 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">书名</label>
             <input
               type="text"
               placeholder="例如：好饿的毛毛虫"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              className="w-full border border-stone-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
-          </label>
+          </div>
 
-          <label className="field">
-            <span>阅读心得（可选）</span>
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">阅读心得（可选）</label>
             <textarea
               rows={3}
               placeholder="今天读完的一句话感想"
               value={thoughts}
               onChange={(e) => setThoughts(e.target.value)}
+              className="w-full border border-stone-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
-          </label>
+          </div>
 
-          <div className="field">
-            <span>评分</span>
-            <div className="stars">
+          <div>
+            <span className="block text-sm font-medium text-stone-700 mb-1">评分</span>
+            <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
                   type="button"
-                  className={n <= stars ? 'on' : ''}
+                  className={`text-2xl transition-colors ${n <= stars ? 'text-amber-400' : 'text-stone-300'}`}
                   onClick={() => setStars(n)}
                 >
                   ★
@@ -172,8 +191,8 @@ function PictureBook() {
             </div>
           </div>
 
-          <div className="field">
-            <span>AI 画风</span>
+          <div>
+            <span className="block text-sm font-medium text-stone-700 mb-1">AI 画风</span>
             <Options
               items={styles}
               getLabel={(s) => s.name}
@@ -183,8 +202,8 @@ function PictureBook() {
             />
           </div>
 
-          <div className="field">
-            <span>绘本页数</span>
+          <div>
+            <span className="block text-sm font-medium text-stone-700 mb-1">绘本页数</span>
             <Options
               items={counts}
               getLabel={(n) => `${n} 张`}
@@ -194,8 +213,8 @@ function PictureBook() {
             />
           </div>
 
-          <div className="field">
-            <span>像素比</span>
+          <div>
+            <span className="block text-sm font-medium text-stone-700 mb-1">像素比</span>
             <Options
               items={ratios}
               getLabel={(r) => r.name}
@@ -205,18 +224,19 @@ function PictureBook() {
             />
           </div>
 
-          <button className="btn btn--primary" type="button" onClick={handleGenerate} disabled={generating}>
-            生成配图
+          <button
+            className="w-full bg-brand-500 text-white font-medium py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            type="button"
+            onClick={handleGenerate}
+            disabled={generating}
+          >
+            {generating ? '生成中...' : '生成配图'}
           </button>
-          <p className="status">{status}</p>
+          {status && <p className="text-sm text-center text-brand-700">{status}</p>}
         </section>
 
-        {book && (
-          <section>
-            <PictureCard data={book} />
-          </section>
-        )}
-      </main>
+        {book && <PictureCard data={book} />}
+      </div>
     </div>
   )
 }

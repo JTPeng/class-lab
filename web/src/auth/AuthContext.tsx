@@ -37,7 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const u = await api.login(username)
     localStorage.setItem(USER_KEY, JSON.stringify(u))
     setUser(u)
+    // 先把后端最新数据拉进本地缓存，再整页刷新，让各页面以最新数据重新渲染。
     await hydrateProgress(u.id)
+    window.location.reload()
   }
 
   function logout(): void {

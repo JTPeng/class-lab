@@ -24,7 +24,9 @@ export function QrImage({ text, size }: { text: string; size: number }) {
       .then(setSrc)
       .catch(() => setSrc(''))
   }, [text, size])
-  return src ? <img className="share-qr" src={src} alt="二维码" width={size} height={size} /> : null
+  return src ? (
+    <img className="bg-white p-2 rounded-lg" src={src} alt="二维码" width={size} height={size} />
+  ) : null
 }
 
 // 把一本绘本图集渲染成一张纵向长图卡片，支持 html2canvas 导出与二维码分享。
@@ -42,7 +44,7 @@ function PictureCard({ data }: { data: PictureBookData }) {
       const canvas = await html2canvas(cardRef.current, {
         useCORS: true,
         scale: 2,
-        backgroundColor: null,
+        backgroundColor: '#ffffff',
       })
       setExportedUrl(canvas.toDataURL('image/png'))
     } catch {
@@ -65,46 +67,70 @@ function PictureCard({ data }: { data: PictureBookData }) {
   }
 
   return (
-    <div className="book-block">
-      <div className="book-card" ref={cardRef}>
-        <div className="book-header">
-          <h2 className="book-title">{data.title}</h2>
-          <div className="book-stars">{starString(data.stars)}</div>
-          {data.thoughts && <p className="book-thoughts">{data.thoughts}</p>}
+    <div className="mt-6">
+      <div
+        className="flex flex-col gap-4 bg-white rounded-2xl border border-brand-200 shadow-card p-5"
+        ref={cardRef}
+      >
+        <div className="flex flex-col items-center gap-2 pb-3 border-b border-brand-100">
+          <h2 className="text-xl font-black text-stone-900 text-center">{data.title}</h2>
+          <div className="text-xl text-amber-400">{starString(data.stars)}</div>
+          {data.thoughts && (
+            <p className="text-sm leading-relaxed text-stone-600 text-center pl-3 border-l-4 border-brand-300">
+              {data.thoughts}
+            </p>
+          )}
         </div>
         {data.scenes.map((s, i) => (
-          <div className="book-page" key={i}>
-            <img className="book-img" src={s.image} alt={`第 ${i + 1} 页`} crossOrigin="anonymous" />
-            <p className="book-scene">
-              <span className="book-pageno">{i + 1}</span>
+          <div className="flex flex-col gap-2" key={i}>
+            <img
+              className="w-full h-auto rounded-xl"
+              src={s.image}
+              alt={`第 ${i + 1} 页`}
+              crossOrigin="anonymous"
+            />
+            <p className="flex items-start gap-2 text-sm leading-relaxed text-stone-700">
+              <span className="flex-none w-6 h-6 flex items-center justify-center rounded-full bg-brand-100 text-brand-700 text-xs font-bold">
+                {i + 1}
+              </span>
               {s.text}
             </p>
           </div>
         ))}
-        <div className="book-footer">
-          <span className="book-date">{data.date}</span>
-          <span className="book-badge">第 {data.count} 次打卡</span>
+        <div className="flex items-center justify-between pt-3 border-t border-brand-100 text-sm">
+          <span className="text-stone-400">{data.date}</span>
+          <span className="inline-block rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700">
+            第 {data.count} 次打卡
+          </span>
         </div>
       </div>
 
-      <div className="card-actions">
-        <button className="btn btn--primary" type="button" onClick={handleExport} disabled={exporting}>
-          {exporting ? '生成中…' : exportedUrl ? '已生成' : '生成绘本长图'}
-        </button>
-      </div>
+      <button
+        className="mt-4 w-full bg-brand-500 text-white font-medium py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        type="button"
+        onClick={handleExport}
+        disabled={exporting}
+      >
+        {exporting ? '生成中…' : exportedUrl ? '已生成' : '生成绘本长图'}
+      </button>
 
       {exportedUrl && (
-        <div className="card-result">
-          <img className="export__img" src={exportedUrl} alt="绘本长图" />
-          <p className="export__tip">长按图片保存到相册</p>
-          <button className="btn btn--ghost" type="button" onClick={handleShare} disabled={sharing || !!shareUrl}>
+        <div className="mt-4 flex flex-col items-center gap-3">
+          <img className="w-full rounded-xl border border-brand-200" src={exportedUrl} alt="绘本长图" />
+          <p className="text-sm text-stone-500">长按图片保存到相册</p>
+          <button
+            className="px-5 py-2 rounded-full font-bold bg-stone-200 text-stone-800 hover:bg-stone-300 disabled:opacity-50 transition-colors"
+            type="button"
+            onClick={handleShare}
+            disabled={sharing || !!shareUrl}
+          >
             {sharing ? '生成链接中…' : shareUrl ? '已生成二维码' : '二维码分享'}
           </button>
           {shareUrl && (
-            <div className="share-box">
+            <div className="flex flex-col items-center gap-1">
               <QrImage text={shareUrl} size={180} />
-              <p className="qr-url">{shareUrl}</p>
-              <p className="export__tip">同一局域网内扫码查看 / 保存</p>
+              <p className="text-sm text-stone-500 break-all">{shareUrl}</p>
+              <p className="text-sm text-stone-500">同一局域网内扫码查看 / 保存</p>
             </div>
           )}
         </div>
