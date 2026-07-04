@@ -8,13 +8,19 @@ import ThemeSwitcher from './ThemeSwitcher'
 const tabs = [
   {
     label: 'DTT 教案',
+    icon: '📋',
     to: '/',
     match: (p: string) =>
       !p.startsWith('/picture-book') && !p.startsWith('/games') && !p.startsWith('/video'),
   },
-  { label: '绘本打卡', to: '/picture-book', match: (p: string) => p.startsWith('/picture-book') },
-  { label: '游戏乐园', to: '/games', match: (p: string) => p.startsWith('/games') },
-  { label: '视频分析', to: '/video', match: (p: string) => p.startsWith('/video') },
+  {
+    label: '绘本打卡',
+    icon: '📖',
+    to: '/picture-book',
+    match: (p: string) => p.startsWith('/picture-book'),
+  },
+  { label: '游戏乐园', icon: '🎮', to: '/games', match: (p: string) => p.startsWith('/games') },
+  { label: '视频分析', icon: '🎥', to: '/video', match: (p: string) => p.startsWith('/video') },
 ]
 
 // 头部登录态：全局门禁下未登录不会渲染到这里，故只展示「用户名 + 退出」。
@@ -34,6 +40,34 @@ function AuthArea() {
   )
 }
 
+// 移动端（md 以下）底部固定 Tab 栏，顶部横向 Tab 空间不够时的替代导航。
+function BottomNav({ pathname }: { pathname: string }) {
+  return (
+    <nav
+      className="md:hidden fixed bottom-0 inset-x-0 z-50 flex items-stretch bg-cream/95 backdrop-blur border-t border-brand-100"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      {tabs.map((tab) => {
+        const active = tab.match(pathname)
+        return (
+          <Link
+            key={tab.to}
+            to={tab.to}
+            className={
+              active
+                ? 'flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-brand-600'
+                : 'flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-stone-500'
+            }
+          >
+            <span className="text-xl leading-none">{tab.icon}</span>
+            <span className="text-[11px] font-bold leading-none">{tab.label}</span>
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
+
 function AppShell() {
   const { pathname } = useLocation()
   const { user } = useAuth()
@@ -49,7 +83,7 @@ function AppShell() {
             <img src="/favicon.svg" alt="" className="w-6 h-6" />
             士多啤梨
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1">
             {tabs.map((tab) => {
               const active = tab.match(pathname)
               return (
@@ -72,9 +106,10 @@ function AppShell() {
           </div>
         </div>
       </header>
-      <main className="flex-1">
+      <main className="flex-1 pb-24 md:pb-0">
         <Outlet />
       </main>
+      <BottomNav pathname={pathname} />
       {import.meta.env.DEV && <ThemeSwitcher />}
     </div>
   )
