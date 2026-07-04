@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import LoginScreen from '../auth/LoginScreen'
+import ThemeSwitcher from './ThemeSwitcher'
 
 // 顶部常驻切换菜单（DTT 暖色风格）。两个 Tab 在「DTT 教案」与「绘本打卡」两个模块间切换，
 // 结构可扩展第三个项目。下方 <Outlet/> 渲染当前模块页面。
@@ -73,6 +74,7 @@ function AppShell() {
       <main className="flex-1">
         <Outlet />
       </main>
+      {import.meta.env.DEV && <ThemeSwitcher />}
     </div>
   )
 }
