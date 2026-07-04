@@ -12,8 +12,12 @@ function Badge({ label, value, tone = 'solid' }: BadgeProps) {
       : 'bg-brand-400/30 text-white ring-2 ring-inset ring-white/70'
 
   return (
-    <span className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold ${toneClass}`}>
-      <span className={tone === 'solid' ? 'text-brand-500' : 'text-brand-50'}>{label}</span>
+    <span
+      className={`flex flex-col items-start gap-1 rounded-2xl px-5 py-3 text-sm font-semibold sm:inline-flex sm:flex-row sm:items-center sm:gap-2 sm:rounded-full sm:py-2 ${toneClass}`}
+    >
+      <span className={`shrink-0 whitespace-nowrap ${tone === 'solid' ? 'text-brand-500' : 'text-brand-50'}`}>
+        {label}
+      </span>
       <span className="font-bold">{value}</span>
     </span>
   )
