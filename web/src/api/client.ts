@@ -1,5 +1,6 @@
 import type { Image, Lesson, LessonInput, LessonListItem } from '../types/lesson';
 import type { ReportStyle, VideoAnalysis, VideoAnalysisListItem } from '../types/video';
+import type { TrainingAttempt, TrainingQuestion, TrainingTopic } from '../types/training';
 import { videoMock } from './videoMock';
 
 const BASE = '/api';
@@ -184,6 +185,27 @@ export function apiErrorMessage(err: unknown, fallback: string): string {
   return raw || fallback;
 }
 
+// ===== 培训测评：学习 + 测评 =====
+
+function listTrainingTopics(): Promise<TrainingTopic[]> {
+  return request<TrainingTopic[]>('/training/topics');
+}
+
+function getTrainingTopic(id: string): Promise<TrainingTopic> {
+  return request<TrainingTopic>(`/training/topics/${id}`);
+}
+
+function getTrainingQuestions(topicId: string): Promise<TrainingQuestion[]> {
+  return request<TrainingQuestion[]>(`/training/topics/${topicId}/questions`);
+}
+
+function submitTrainingAttempt(topicId: string, userId: string, answers: number[][]): Promise<TrainingAttempt> {
+  return request<TrainingAttempt>(`/training/topics/${topicId}/attempts`, {
+    method: 'POST',
+    body: { userId, answers },
+  });
+}
+
 export const api = {
   generateLesson,
   listLessons,
@@ -205,4 +227,8 @@ export const api = {
   listVideoAnalyses,
   getVideoAnalysis,
   deleteVideoAnalysis,
+  listTrainingTopics,
+  getTrainingTopic,
+  getTrainingQuestions,
+  submitTrainingAttempt,
 };
