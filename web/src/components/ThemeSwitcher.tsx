@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type ThemeOption = {
   key: string
@@ -41,6 +41,7 @@ function applyTheme(key: string) {
 function ThemeSwitcher() {
   const [active, setActive] = useState('default')
   const [open, setOpen] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     ensureFontsLoaded()
@@ -48,6 +49,21 @@ function ThemeSwitcher() {
     applyTheme(saved)
     setActive(saved)
   }, [])
+
+  useEffect(() => {
+    if (!open) return
+    function handleOutsideClick(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    document.addEventListener('touchstart', handleOutsideClick)
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+      document.removeEventListener('touchstart', handleOutsideClick)
+    }
+  }, [open])
 
   if (!open) {
     const activeSwatch = THEMES.find((t) => t.key === active)?.swatch ?? THEMES[0].swatch
@@ -64,7 +80,10 @@ function ThemeSwitcher() {
   }
 
   return (
-    <div className="fixed bottom-24 right-4 md:bottom-4 z-[100] flex flex-col gap-1 rounded-2xl bg-white/95 p-2 shadow-lg ring-1 ring-black/10">
+    <div
+      ref={panelRef}
+      className="fixed bottom-24 right-4 md:bottom-4 z-[100] flex flex-col gap-1 rounded-2xl bg-white/95 p-2 shadow-lg ring-1 ring-black/10"
+    >
       <button
         type="button"
         onClick={() => setOpen(false)}
