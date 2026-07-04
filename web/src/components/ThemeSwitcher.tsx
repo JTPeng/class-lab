@@ -52,7 +52,7 @@ function ThemeSwitcher() {
 
   useEffect(() => {
     if (!open) return
-    function handleOutsideClick(e: MouseEvent) {
+    function handleOutsideClick(e: MouseEvent | TouchEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
