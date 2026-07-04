@@ -5,6 +5,7 @@ import { createModuleDataTable } from './moduleData.js';
 import { createVideoAnalysesTable } from './videoAnalyses.js';
 import { createPictureBooksTable } from './pictureBooks.js';
 import { createTrainingTopicsTable } from './trainingTopics.js';
+import { createTrainingQuestionsTable } from './trainingQuestions.js';
 import { backfillOwnerlessData } from './migrations.js';
 
 export type LessonListItem = {
@@ -57,6 +58,7 @@ export async function initSchema(client: DbClient): Promise<void> {
   await createVideoAnalysesTable(client);
   await createPictureBooksTable(client);
   await createTrainingTopicsTable(client);
+  await createTrainingQuestionsTable(client);
   await backfillOwnerlessData(client);
 }
 
