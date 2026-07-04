@@ -1,31 +1,45 @@
+import colors from 'tailwindcss/colors'
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        // 暖橙主色（参考 motuai.cn），语义化别名，页面内直接用 brand-* 即可
+        // 主题化色板：色阶数值由 CSS 变量提供，具体取值见 src/index.css
         brand: {
-          50: '#FFF7ED',
-          100: '#FFEDD5',
-          200: '#FED7AA',
-          300: '#FDBA74',
-          400: '#FB923C',
-          500: '#F97316',
-          600: '#EA580C',
-          700: '#C2410C',
-          800: '#9A3412',
-          900: '#7C2D12',
+          50: 'var(--color-brand-50)',
+          100: 'var(--color-brand-100)',
+          200: 'var(--color-brand-200)',
+          300: 'var(--color-brand-300)',
+          400: 'var(--color-brand-400)',
+          500: 'var(--color-brand-500)',
+          600: 'var(--color-brand-600)',
+          700: 'var(--color-brand-700)',
+          800: 'var(--color-brand-800)',
+          900: 'var(--color-brand-900)',
         },
-        // 奶油底色
-        cream: '#FFF7ED',
+        cream: 'var(--color-cream)',
+        // 只有 900（标题强调色）主题化，其余沿用 Tailwind 默认中性灰阶
+        stone: {
+          ...colors.stone,
+          900: 'var(--color-text-strong)',
+        },
+      },
+      borderRadius: {
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
+        '3xl': 'var(--radius-3xl)',
       },
       boxShadow: {
-        soft: '0 8px 24px -8px rgba(234, 88, 12, 0.18)',
-        card: '0 2px 10px -2px rgba(120, 53, 15, 0.08)',
+        soft: 'var(--shadow-soft)',
+        card: 'var(--shadow-card)',
+      },
+      fontFamily: {
+        sans: 'var(--font-sans)',
       },
     },
   },
   plugins: [],
 }
-

@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-brand-50: #FFF7ED;
+  --color-brand-100: #FFEDD5;
+  --color-brand-200: #FED7AA;
+  --color-brand-300: #FDBA74;
+  --color-brand-400: #FB923C;
+  --color-brand-500: #F97316;
+  --color-brand-600: #EA580C;
+  --color-brand-700: #C2410C;
+  --color-brand-800: #9A3412;
+  --color-brand-900: #7C2D12;
+  --color-cream: #FFF7ED;
+  --color-text-strong: #1c1917;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --shadow-soft: 0 8px 24px -8px rgba(234, 88, 12, 0.18);
+  --shadow-card: 0 2px 10px -2px rgba(120, 53, 15, 0.08);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
 /* 教案详情页打印/导出 PDF：保留暖橙底色与色块，卡片避免被分页截断。
    隐藏交互元素统一用 Tailwind 的 `print:hidden` 类标记在各组件里。 */
 @media print {
