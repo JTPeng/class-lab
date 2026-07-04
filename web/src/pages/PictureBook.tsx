@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, apiErrorMessage } from '../api/client'
 import { counts, ratios, styles, type RatioOption } from '../pictureBook/config'
-import { addRecord, getNextCount, today } from '../pictureBook/storage'
+import { addRecord, deleteRecord, fetchHistory, getHistory, today, type BookRecord } from '../pictureBook/storage'
 import PictureCard, { QrImage, type PictureBookData } from '../components/PictureCard'
 
 // 单选 chip 组
@@ -102,6 +102,8 @@ function PictureBook() {
   const [generating, setGenerating] = useState(false)
   const [book, setBook] = useState<PictureBookData | null>(null)
   const [qrOpen, setQrOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [history, setHistory] = useState<BookRecord[]>([])
 
   async function handleGenerate() {
     const t = title.trim()
@@ -121,16 +123,39 @@ function PictureBook() {
         size: ratio.size,
       })
       setStatus('')
-      const date = today()
-      const nextCount = getNextCount()
-      setBook({ scenes, title: t, thoughts: th, stars, date, count: nextCount })
-      // 一次阅读记一次打卡（多张配图共用同一次）
-      addRecord({ date, title: t, stars, thoughts: th })
+      const record: BookRecord = {
+        id: crypto.randomUUID(),
+        title: t,
+        thoughts: th,
+        stars,
+        style,
+        size: ratio.size,
+        scenes,
+        date: today(),
+        createdAt: new Date().toISOString(),
+        count: getHistory().length + 1,
+      }
+      setBook(record)
+      addRecord(record)
+      if (historyOpen) setHistory(getHistory())
     } catch (err) {
       setStatus(apiErrorMessage(err, '配图生成失败，请重试'))
     } finally {
       setGenerating(false)
     }
+  }
+
+  function toggleHistory() {
+    if (!historyOpen) {
+      setHistory(getHistory())
+      fetchHistory().then(setHistory)
+    }
+    setHistoryOpen((v) => !v)
+  }
+
+  function handleDeleteRecord(id: string) {
+    deleteRecord(id)
+    setHistory(getHistory())
   }
 
   return (
@@ -140,17 +165,64 @@ function PictureBook() {
           <h1 className="text-3xl font-black text-stone-900">
             📖 绘本<span className="text-brand-500">打卡</span>
           </h1>
-          <button
-            className="px-4 py-2 rounded-full text-sm font-bold bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors"
-            type="button"
-            onClick={() => setQrOpen(true)}
-          >
-            扫码上手机
-          </button>
+          <div className="flex gap-2">
+            <button
+              className="px-4 py-2 rounded-full text-sm font-bold bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors"
+              type="button"
+              onClick={toggleHistory}
+            >
+              {historyOpen ? '收起历史' : '查看历史'}
+            </button>
+            <button
+              className="px-4 py-2 rounded-full text-sm font-bold bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors"
+              type="button"
+              onClick={() => setQrOpen(true)}
+            >
+              扫码上手机
+            </button>
+          </div>
         </div>
         <p className="text-stone-600 mb-8">记录每一次亲子阅读，生成专属绘本长图。</p>
 
         {qrOpen && <LanQrModal onClose={() => setQrOpen(false)} />}
+
+        {historyOpen && (
+          <section className="mb-8 bg-white p-4 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
+            {history.length === 0 ? (
+              <p className="text-sm text-stone-500 text-center py-4">还没有生成过绘本，快去生成第一本吧～</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {history.map((r) => (
+                  <div
+                    key={r.id}
+                    className="relative flex flex-col gap-1 border border-brand-100 rounded-xl p-2 cursor-pointer hover:ring-2 hover:ring-brand-300 transition-shadow"
+                    onClick={() => setBook(r)}
+                  >
+                    <img
+                      className="w-full h-28 object-cover rounded-lg"
+                      src={r.scenes[0]?.image}
+                      alt={r.title}
+                    />
+                    <p className="text-sm font-bold text-stone-800 truncate">{r.title}</p>
+                    <p className="text-xs text-stone-400">
+                      {r.date} · 第 {r.count} 次
+                    </p>
+                    <button
+                      className="absolute top-1 right-1 w-6 h-6 rounded-full bg-stone-900/60 text-white text-xs hover:bg-red-500 transition-colors"
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteRecord(r.id)
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         <section className="space-y-6 bg-white p-6 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
           <div>

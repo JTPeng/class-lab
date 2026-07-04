@@ -1,16 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
 import QRCode from 'qrcode'
-import { api, apiErrorMessage, type PictureScene } from '../api/client'
+import { api, apiErrorMessage } from '../api/client'
+import type { BookRecord } from '../pictureBook/storage'
+import PictureFlipBook from './PictureFlipBook'
 
-export interface PictureBookData {
-  scenes: PictureScene[]
-  title: string
-  thoughts: string
-  stars: number
-  date: string
-  count: number
-}
+export type PictureBookData = BookRecord
 
 function starString(n: number): string {
   return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n)
@@ -68,8 +63,11 @@ function PictureCard({ data }: { data: PictureBookData }) {
 
   return (
     <div className="mt-6">
+      <PictureFlipBook data={data} />
+
+      {/* 隐藏的纵向长图布局，仅供 html2canvas 截图导出用，不在可视区域展示 */}
       <div
-        className="flex flex-col gap-4 bg-white rounded-2xl border border-brand-200 shadow-card p-5"
+        className="fixed left-0 top-0 -z-10 opacity-0 pointer-events-none flex flex-col gap-4 bg-white rounded-2xl border border-brand-200 shadow-card p-5 w-[480px]"
         ref={cardRef}
       >
         <div className="flex flex-col items-center gap-2 pb-3 border-b border-brand-100">
