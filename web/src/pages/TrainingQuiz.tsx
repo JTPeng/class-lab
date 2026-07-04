@@ -77,7 +77,8 @@ export default function TrainingQuiz() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       <p className="text-sm text-stone-500 mb-2">
-        第 {index + 1} / {questions.length} 题 {q.type === 'multi' ? '（多选）' : '（单选）'}
+        第 {index + 1} / {questions.length} 题{' '}
+        {q.type === 'multi' ? '（多选）' : q.type === 'judge' ? '（判断）' : '（单选）'}
       </p>
       <h2 className="font-bold text-stone-800 mb-3">{q.question}</h2>
       <div className="space-y-2 mb-6">
@@ -105,16 +106,17 @@ export default function TrainingQuiz() {
         </button>
         {index < questions.length - 1 ? (
           <button
+            disabled={selected.length === 0}
             onClick={() => setIndex((i) => i + 1)}
-            className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft"
+            className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft disabled:opacity-40"
           >
             下一题
           </button>
         ) : (
           <button
-            disabled={submitting}
+            disabled={selected.length === 0 || submitting}
             onClick={submit}
-            className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft disabled:opacity-60"
+            className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft disabled:opacity-40"
           >
             {submitting ? '提交中…' : '交卷'}
           </button>
