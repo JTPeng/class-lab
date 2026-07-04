@@ -2,12 +2,16 @@ import type { Image, Lesson, LessonInput, LessonListItem } from '../types/lesson
 import type { ReportStyle, VideoAnalysis, VideoAnalysisListItem } from '../types/video';
 import type { TrainingAttempt, TrainingQuestion, TrainingTopic } from '../types/training';
 import { videoMock } from './videoMock';
+import { trainingMock } from './trainingMock';
 
 const BASE = '/api';
 
 // 后端 /api/video/* 未就绪时用前端 Mock 预览全流程；接口上线后改为 false 即联调（页面无需改动）。
 // 后端已就绪（serve/src/routes/videoAnalysis.ts），联调走真实接口。
 const USE_VIDEO_MOCK = false;
+
+// 后端 /api/training/* 未就绪时用前端 Mock 预览全流程；接口上线后改为 false 即联调（页面无需改动）。
+const USE_TRAINING_MOCK = true;
 
 async function request<T>(path: string, options?: { method?: string; body?: unknown }): Promise<T> {
   const { method, body } = options ?? {};
@@ -188,18 +192,22 @@ export function apiErrorMessage(err: unknown, fallback: string): string {
 // ===== 培训测评：学习 + 测评 =====
 
 function listTrainingTopics(): Promise<TrainingTopic[]> {
+  if (USE_TRAINING_MOCK) return trainingMock.listTrainingTopics();
   return request<TrainingTopic[]>('/training/topics');
 }
 
 function getTrainingTopic(id: string): Promise<TrainingTopic> {
+  if (USE_TRAINING_MOCK) return trainingMock.getTrainingTopic(id);
   return request<TrainingTopic>(`/training/topics/${id}`);
 }
 
 function getTrainingQuestions(topicId: string): Promise<TrainingQuestion[]> {
+  if (USE_TRAINING_MOCK) return trainingMock.getTrainingQuestions(topicId);
   return request<TrainingQuestion[]>(`/training/topics/${topicId}/questions`);
 }
 
 function submitTrainingAttempt(topicId: string, userId: string, answers: number[][]): Promise<TrainingAttempt> {
+  if (USE_TRAINING_MOCK) return trainingMock.submitTrainingAttempt(topicId, userId, answers);
   return request<TrainingAttempt>(`/training/topics/${topicId}/attempts`, {
     method: 'POST',
     body: { userId, answers },
