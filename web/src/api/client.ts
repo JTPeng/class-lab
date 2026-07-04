@@ -170,8 +170,8 @@ export interface PicturebookInput {
   size: string;
 }
 
-function generatePicturebook(input: PicturebookInput): Promise<{ scenes: PictureScene[] }> {
-  return request<{ scenes: PictureScene[] }>('/picturebook/generate', {
+function generatePicturebook(input: PicturebookInput): Promise<{ scenes: PictureScene[]; cover: string }> {
+  return request<{ scenes: PictureScene[]; cover: string }>('/picturebook/generate', {
     method: 'POST',
     body: input,
   });
@@ -193,6 +193,7 @@ export interface PictureBookRecordDto {
   style: string;
   size: string;
   scenes: PictureScene[];
+  cover?: string | null;
   date: string;
   createdAt: string;
   count: number;

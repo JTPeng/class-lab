@@ -7,6 +7,9 @@ import PictureFlipBook from './PictureFlipBook'
 
 export type PictureBookData = BookRecord
 
+// 生成绘本长图功能暂时隐藏，保留实现，改这个开关即可恢复。
+const SHOW_EXPORT_LONG_IMAGE = false
+
 function starString(n: number): string {
   return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n)
 }
@@ -71,7 +74,7 @@ function PictureCard({ data }: { data: PictureBookData }) {
         ref={cardRef}
       >
         <div className="flex flex-col items-center gap-2 pb-3 border-b border-brand-100">
-          <h2 className="text-xl font-black text-stone-900 text-center">{data.title}</h2>
+          <h2 className="text-xl font-extrabold text-stone-900 text-center">{data.title}</h2>
           <div className="text-xl text-amber-400">{starString(data.stars)}</div>
           {data.thoughts && (
             <p className="text-sm leading-relaxed text-stone-600 text-center pl-3 border-l-4 border-brand-300">
@@ -103,35 +106,39 @@ function PictureCard({ data }: { data: PictureBookData }) {
         </div>
       </div>
 
-      <button
-        className="mt-4 w-full bg-brand-500 text-white font-medium py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        type="button"
-        onClick={handleExport}
-        disabled={exporting}
-      >
-        {exporting ? '生成中…' : exportedUrl ? '已生成' : '生成绘本长图'}
-      </button>
-
-      {exportedUrl && (
-        <div className="mt-4 flex flex-col items-center gap-3">
-          <img className="w-full rounded-xl border border-brand-200" src={exportedUrl} alt="绘本长图" />
-          <p className="text-sm text-stone-500">长按图片保存到相册</p>
+      {SHOW_EXPORT_LONG_IMAGE && (
+        <>
           <button
-            className="px-5 py-2 rounded-full font-bold bg-stone-200 text-stone-800 hover:bg-stone-300 disabled:opacity-50 transition-colors"
+            className="mt-4 w-full bg-brand-500 text-white font-semibold py-2 rounded-xl hover:bg-brand-600 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             type="button"
-            onClick={handleShare}
-            disabled={sharing || !!shareUrl}
+            onClick={handleExport}
+            disabled={exporting}
           >
-            {sharing ? '生成链接中…' : shareUrl ? '已生成二维码' : '二维码分享'}
+            {exporting ? '生成中…' : exportedUrl ? '已生成' : '生成绘本长图'}
           </button>
-          {shareUrl && (
-            <div className="flex flex-col items-center gap-1">
-              <QrImage text={shareUrl} size={180} />
-              <p className="text-sm text-stone-500 break-all">{shareUrl}</p>
-              <p className="text-sm text-stone-500">同一局域网内扫码查看 / 保存</p>
+
+          {exportedUrl && (
+            <div className="mt-4 flex flex-col items-center gap-3">
+              <img className="w-full rounded-xl border border-brand-200" src={exportedUrl} alt="绘本长图" />
+              <p className="text-sm text-stone-500">长按图片保存到相册</p>
+              <button
+                className="px-5 py-2 rounded-full font-bold bg-stone-200 text-stone-800 hover:bg-stone-300 active:scale-[0.98] disabled:opacity-50 transition-all duration-200"
+                type="button"
+                onClick={handleShare}
+                disabled={sharing || !!shareUrl}
+              >
+                {sharing ? '生成链接中…' : shareUrl ? '已生成二维码' : '二维码分享'}
+              </button>
+              {shareUrl && (
+                <div className="flex flex-col items-center gap-1">
+                  <QrImage text={shareUrl} size={180} />
+                  <p className="text-sm text-stone-500 break-all">{shareUrl}</p>
+                  <p className="text-sm text-stone-500">同一局域网内扫码查看 / 保存</p>
+                </div>
+              )}
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   )

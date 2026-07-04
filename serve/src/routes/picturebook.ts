@@ -35,14 +35,14 @@ export async function registerPicturebookRoutes(app: FastifyInstance, deps: Pict
       return reply.status(400).send({ error: '请填写书名' });
     }
     try {
-      const scenes = await generatePicturebook({
+      const { scenes, cover } = await generatePicturebook({
         title: String(title).trim(),
         thoughts: thoughts ? String(thoughts).trim() : '',
         style: style ? String(style) : undefined,
         n,
         size: size ? String(size) : undefined,
       });
-      return reply.status(200).send({ scenes });
+      return reply.status(200).send({ scenes, cover });
     } catch (err) {
       app.log.error(err);
       return reply.status(502).send({ error: (err as Error).message || '生成失败，请重试' });

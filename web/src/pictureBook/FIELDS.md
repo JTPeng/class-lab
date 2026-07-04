@@ -12,6 +12,7 @@
 | `style` | string | 是 | AI 画风 id，需与后端 `STYLE_PROMPTS`（`serve/src/ai/picturebook.ts`）对齐 |
 | `size` | string | 是 | 像素比尺寸串（如 `1024*1024`），需与后端 `ALLOWED_SIZES` 对齐 |
 | `scenes` | `{ text: string; image: string }[]` | 是 | 逐页文案 + 插图；`image` 目前是 base64 data URL，**建库时建议改存文件路径/URL**，不要整段塞进一列 |
+| `cover` | string | 否 | 封面图（base64 data URL），复用第一个分镜内容换封面构图生成；旧记录无此字段时前端回退用 `scenes[0].image` |
 | `date` | string(`YYYY-MM-DD`) | 是 | 生成/打卡日期，用于展示 |
 | `createdAt` | string(ISO datetime) | 是 | 精确生成时间，用于排序 |
 | `count` | number | 是 | 生成时刻的“第 N 次打卡”，创建后不再变更（即使之后删除了更早的记录） |

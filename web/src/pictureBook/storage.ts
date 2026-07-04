@@ -17,6 +17,7 @@ export interface BookRecord {
   style: string;
   size: string;
   scenes: PictureScene[];
+  cover?: string;
   date: string;
   createdAt: string;
   count: number;

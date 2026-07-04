@@ -3,7 +3,7 @@ import type { Lesson } from '../schema/lesson.js';
 import { createUsersTable } from './users.js';
 import { createModuleDataTable } from './moduleData.js';
 import { createVideoAnalysesTable } from './videoAnalyses.js';
-import { createPictureBooksTable } from './pictureBooks.js';
+import { createPictureBooksTable, addPictureBooksCoverColumn } from './pictureBooks.js';
 import { createTrainingTopicsTable } from './trainingTopics.js';
 import { createTrainingQuestionsTable } from './trainingQuestions.js';
 import { createTrainingAttemptsTable } from './trainingAttempts.js';
@@ -106,6 +106,7 @@ export async function initSchema(client: DbClient): Promise<void> {
   await createTrainingQuestionsTable(client);
   await createTrainingAttemptsTable(client);
   await addPictureBooksScoreColumns(client);
+  await addPictureBooksCoverColumn(client);
   await createCasesTable(client);
   await createCaseSessionsTable(client);
   await createGameSessionsTable(client);

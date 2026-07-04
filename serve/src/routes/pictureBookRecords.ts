@@ -22,6 +22,7 @@ const RecordBodySchema = z.object({
   style: z.string(),
   size: z.string(),
   scenes: z.array(SceneSchema),
+  cover: z.string().nullable().default(null),
   date: z.string(),
   createdAt: z.string(),
   count: z.number(),

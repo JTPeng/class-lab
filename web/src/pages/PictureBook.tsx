@@ -105,8 +105,15 @@ function PictureBook() {
   const [generating, setGenerating] = useState(false)
   const [book, setBook] = useState<PictureBookData | null>(null)
   const [qrOpen, setQrOpen] = useState(false)
-  const [historyOpen, setHistoryOpen] = useState(false)
-  const [history, setHistory] = useState<BookRecord[]>([])
+  const [history, setHistory] = useState<BookRecord[]>(getHistory())
+  const [historyLoading, setHistoryLoading] = useState(true)
+
+  useEffect(() => {
+    fetchHistory()
+      .then(setHistory)
+      .catch(() => {})
+      .finally(() => setHistoryLoading(false))
+  }, [])
 
   async function handleGenerate() {
     const t = title.trim()
@@ -118,7 +125,7 @@ function PictureBook() {
     setGenerating(true)
     setStatus(`正在编排 ${count} 页绘本并生成插画，请稍候…`)
     try {
-      const { scenes } = await api.generatePicturebook({
+      const { scenes, cover } = await api.generatePicturebook({
         title: t,
         thoughts: th,
         style,
@@ -134,26 +141,19 @@ function PictureBook() {
         style,
         size: ratio.size,
         scenes,
+        cover,
         date: today(),
         createdAt: new Date().toISOString(),
         count: getHistory().length + 1,
       }
       setBook(record)
       addRecord(record)
-      if (historyOpen) setHistory(getHistory())
+      setHistory(getHistory())
     } catch (err) {
       setStatus(apiErrorMessage(err, '配图生成失败，请重试'))
     } finally {
       setGenerating(false)
     }
-  }
-
-  function toggleHistory() {
-    if (!historyOpen) {
-      setHistory(getHistory())
-      fetchHistory().then(setHistory)
-    }
-    setHistoryOpen((v) => !v)
   }
 
   function handleDeleteRecord(id: string) {
@@ -165,17 +165,10 @@ function PictureBook() {
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
       <div className="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-black text-stone-900">
+          <h1 className="text-3xl font-extrabold text-stone-900">
             📖 绘本<span className="text-brand-500">打卡</span>
           </h1>
           <div className="flex gap-2">
-            <button
-              className="px-4 py-2 rounded-full text-sm font-bold bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors"
-              type="button"
-              onClick={toggleHistory}
-            >
-              {historyOpen ? '收起历史' : '查看历史'}
-            </button>
             <button
               className="px-4 py-2 rounded-full text-sm font-bold bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors"
               type="button"
@@ -185,47 +178,46 @@ function PictureBook() {
             </button>
           </div>
         </div>
-        <p className="text-stone-600 mb-8">记录每一次亲子阅读，生成专属绘本长图。</p>
+        <p className="text-stone-600 mb-8">记录每一次亲子阅读。</p>
 
         {qrOpen && <LanQrModal onClose={() => setQrOpen(false)} />}
 
-        {historyOpen && (
-          <section className="mb-8 bg-white p-4 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
-            {history.length === 0 ? (
-              <p className="text-sm text-stone-500 text-center py-4">还没有生成过绘本，快去生成第一本吧～</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {history.map((r) => (
-                  <div
-                    key={r.id}
-                    className="relative flex flex-col gap-1 border border-brand-100 rounded-xl p-2 cursor-pointer hover:ring-2 hover:ring-brand-300 transition-shadow"
-                    onClick={() => setBook(r)}
+        <section className="mb-8 bg-white p-4 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
+          {historyLoading && <p className="text-sm text-stone-400 text-center pb-3">同步中…</p>}
+          {history.length === 0 ? (
+            <p className="text-sm text-stone-500 text-center py-4">还没有生成过绘本，快去生成第一本吧～</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {history.map((r) => (
+                <div
+                  key={r.id}
+                  className="relative flex flex-col gap-1 border border-brand-100 rounded-xl p-2 cursor-pointer hover:ring-2 hover:ring-brand-300 transition-shadow"
+                  onClick={() => setBook(r)}
+                >
+                  <img
+                    className="w-full h-28 object-cover rounded-lg"
+                    src={r.cover ?? r.scenes[0]?.image}
+                    alt={r.title}
+                  />
+                  <p className="text-sm font-bold text-stone-800 truncate">{r.title}</p>
+                  <p className="text-xs text-stone-400">
+                    {r.date} · 第 {r.count} 次
+                  </p>
+                  <button
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-stone-900/60 text-white text-xs hover:bg-red-500 transition-colors"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteRecord(r.id)
+                    }}
                   >
-                    <img
-                      className="w-full h-28 object-cover rounded-lg"
-                      src={r.scenes[0]?.image}
-                      alt={r.title}
-                    />
-                    <p className="text-sm font-bold text-stone-800 truncate">{r.title}</p>
-                    <p className="text-xs text-stone-400">
-                      {r.date} · 第 {r.count} 次
-                    </p>
-                    <button
-                      className="absolute top-1 right-1 w-6 h-6 rounded-full bg-stone-900/60 text-white text-xs hover:bg-red-500 transition-colors"
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteRecord(r.id)
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         <section className="space-y-6 bg-white p-6 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
           <div>
@@ -300,7 +292,7 @@ function PictureBook() {
           </div>
 
           <button
-            className="w-full bg-brand-500 text-white font-medium py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-brand-500 text-white font-medium py-2 rounded-xl hover:bg-brand-600 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             type="button"
             onClick={handleGenerate}
             disabled={generating}

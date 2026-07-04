@@ -34,10 +34,16 @@ function PictureFlipBook({ data }: { data: PictureBookData }) {
         showPageCorners
         disableFlipByClick={false}
       >
-        <div className="flex flex-col items-center justify-center gap-3 h-full bg-brand-500 text-white p-6 text-center">
-          <h2 className="text-2xl font-black">{data.title}</h2>
-          <div className="text-xl text-amber-200">{starString(data.stars)}</div>
-          {data.thoughts && <p className="text-sm leading-relaxed">{data.thoughts}</p>}
+        <div
+          className="relative flex flex-col items-center justify-center gap-3 h-full bg-brand-500 text-white p-6 text-center overflow-hidden"
+          style={data.cover ? { backgroundImage: `url(${data.cover})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+        >
+          {data.cover && <div className="absolute inset-0 bg-black/35" />}
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <h2 className="text-2xl font-extrabold drop-shadow">{data.title}</h2>
+            <div className="text-xl text-amber-200 drop-shadow">{starString(data.stars)}</div>
+            {data.thoughts && <p className="text-sm leading-relaxed drop-shadow">{data.thoughts}</p>}
+          </div>
         </div>
         {data.scenes.map((s, i) => (
           <div className="flex flex-col h-full bg-white p-3 gap-2" key={i}>

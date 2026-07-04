@@ -45,6 +45,12 @@ export function buildScenePrompt(title: string, scene: string, style?: string): 
   return `${stylePrefix}，绘本《${title}》，画面：${scene}，保持角色与画风统一，画面中不要出现任何文字`;
 }
 
+// 封面图 prompt：复用第一个分镜的画面内容，换成居中留白的封面构图
+export function buildCoverPrompt(title: string, scene: string, style?: string): string {
+  const stylePrefix = STYLE_PROMPTS[style ?? ''] || STYLE_PROMPTS[DEFAULT_STYLE];
+  return `${stylePrefix}，绘本《${title}》封面，画面：${scene}，主体居中，构图工整，四周留白便于叠加书名，保持角色与画风统一，画面中不要出现任何文字`;
+}
+
 // 规整参数：页数限制 1~MAX_PAGES，尺寸走白名单
 export function normalizeOptions({ n, size }: { n?: number | string; size?: string }): {
   pages: number;
@@ -224,15 +230,21 @@ async function generateOneImage(prompt: string, size: string): Promise<string> {
   return fetchAsDataUrl(urls[0]);
 }
 
-// 生成一本绘本图集：先编分镜，再逐场景生图
-// 返回 [{ text, image }]，长度等于页数
-export async function generatePicturebook(input: GeneratePicturebookInput): Promise<Scene[]> {
+export interface GeneratePicturebookResult {
+  scenes: Scene[];
+  cover: string;
+}
+
+// 生成一本绘本图集：先编分镜，再逐场景生图，最后额外生成一张封面图
+// 封面复用第一个分镜的画面内容，只是换成封面构图（居中留白）
+export async function generatePicturebook(input: GeneratePicturebookInput): Promise<GeneratePicturebookResult> {
   const opts = normalizeOptions({ n: input.n, size: input.size });
-  const scenes = await generateStoryScenes(input.title, input.thoughts ?? '', opts.pages);
+  const sceneTexts = await generateStoryScenes(input.title, input.thoughts ?? '', opts.pages);
   // 逐张串行生成，避免并发请求触发阿里百炼速率限制（Throttling.RateQuota）——不要改成并发。
   const images: string[] = [];
-  for (const scene of scenes) {
+  for (const scene of sceneTexts) {
     images.push(await generateOneImage(buildScenePrompt(input.title, scene, input.style), opts.size));
   }
-  return scenes.map((text, i) => ({ text, image: images[i] }));
+  const cover = await generateOneImage(buildCoverPrompt(input.title, sceneTexts[0], input.style), opts.size);
+  return { scenes: sceneTexts.map((text, i) => ({ text, image: images[i] })), cover };
 }
