@@ -50,7 +50,7 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="flex items-center gap-2 text-3xl font-black text-stone-900">
             <img src="/favicon.svg" alt="" className="w-8 h-8" />

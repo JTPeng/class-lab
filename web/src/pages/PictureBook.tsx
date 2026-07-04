@@ -160,7 +160,7 @@ function PictureBook() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-3xl font-black text-stone-900">
             📖 绘本<span className="text-brand-500">打卡</span>

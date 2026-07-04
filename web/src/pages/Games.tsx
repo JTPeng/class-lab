@@ -67,7 +67,7 @@ const GAMES: GameMeta[] = [
 function Games() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto">
         <h1 className="text-3xl font-black text-stone-900 mb-2">
           🎮 游戏<span className="text-brand-500">乐园</span>
         </h1>
