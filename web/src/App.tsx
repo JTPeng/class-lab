@@ -12,6 +12,9 @@ import MemoryFlip from './pages/MemoryFlip'
 import PoseMimic from './pages/PoseMimic'
 import VideoAnalysis from './pages/VideoAnalysis'
 import VideoAnalysisDetail from './pages/VideoAnalysisDetail'
+import TrainingTopics from './pages/TrainingTopics'
+import TrainingTopicDetail from './pages/TrainingTopicDetail'
+import TrainingQuiz from './pages/TrainingQuiz'
 
 function App() {
   return (
@@ -33,6 +36,10 @@ function App() {
         {/* 视频分析模块 */}
         <Route path="/video" element={<VideoAnalysis />} />
         <Route path="/video/:id" element={<VideoAnalysisDetail />} />
+        {/* 培训测评模块 */}
+        <Route path="/training" element={<TrainingTopics />} />
+        <Route path="/training/:id" element={<TrainingTopicDetail />} />
+        <Route path="/training/:id/quiz" element={<TrainingQuiz />} />
       </Route>
     </Routes>
   )

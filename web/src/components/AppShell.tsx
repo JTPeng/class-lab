@@ -11,7 +11,10 @@ const tabs = [
     icon: '📋',
     to: '/',
     match: (p: string) =>
-      !p.startsWith('/picture-book') && !p.startsWith('/games') && !p.startsWith('/video'),
+      !p.startsWith('/picture-book') &&
+      !p.startsWith('/games') &&
+      !p.startsWith('/video') &&
+      !p.startsWith('/training'),
   },
   {
     label: '绘本打卡',
@@ -21,6 +24,7 @@ const tabs = [
   },
   { label: '游戏乐园', icon: '🎮', to: '/games', match: (p: string) => p.startsWith('/games') },
   { label: '视频分析', icon: '🎥', to: '/video', match: (p: string) => p.startsWith('/video') },
+  { label: '培训测评', icon: '🎓', to: '/training', match: (p: string) => p.startsWith('/training') },
 ]
 
 // 头部登录态：全局门禁下未登录不会渲染到这里，故只展示「用户名 + 退出」。
