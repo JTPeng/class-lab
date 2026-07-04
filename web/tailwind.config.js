@@ -6,24 +6,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        // 主题化色板：色阶数值由 CSS 变量提供，具体取值见 src/index.css
+        // 主题化色板：色阶数值由 CSS 变量（RGB 通道三元组）提供，具体取值见 src/index.css。
+        // 用 rgb(var(...) / <alpha-value>) 而不是裸的 var(...)，是为了保留 Tailwind
+        // 的透明度修饰符（如 bg-cream/95、bg-stone-900/40）——裸十六进制字符串的
+        // var() 值会让 Tailwind 无法为其生成透明度变体。
         brand: {
-          50: 'var(--color-brand-50)',
-          100: 'var(--color-brand-100)',
-          200: 'var(--color-brand-200)',
-          300: 'var(--color-brand-300)',
-          400: 'var(--color-brand-400)',
-          500: 'var(--color-brand-500)',
-          600: 'var(--color-brand-600)',
-          700: 'var(--color-brand-700)',
-          800: 'var(--color-brand-800)',
-          900: 'var(--color-brand-900)',
+          50: 'rgb(var(--color-brand-50) / <alpha-value>)',
+          100: 'rgb(var(--color-brand-100) / <alpha-value>)',
+          200: 'rgb(var(--color-brand-200) / <alpha-value>)',
+          300: 'rgb(var(--color-brand-300) / <alpha-value>)',
+          400: 'rgb(var(--color-brand-400) / <alpha-value>)',
+          500: 'rgb(var(--color-brand-500) / <alpha-value>)',
+          600: 'rgb(var(--color-brand-600) / <alpha-value>)',
+          700: 'rgb(var(--color-brand-700) / <alpha-value>)',
+          800: 'rgb(var(--color-brand-800) / <alpha-value>)',
+          900: 'rgb(var(--color-brand-900) / <alpha-value>)',
         },
-        cream: 'var(--color-cream)',
+        cream: 'rgb(var(--color-cream) / <alpha-value>)',
         // 只有 900（标题强调色）主题化，其余沿用 Tailwind 默认中性灰阶
         stone: {
           ...colors.stone,
-          900: 'var(--color-text-strong)',
+          900: 'rgb(var(--color-text-strong) / <alpha-value>)',
         },
       },
       borderRadius: {

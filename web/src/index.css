@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --color-brand-50: #FFF7ED;
-  --color-brand-100: #FFEDD5;
-  --color-brand-200: #FED7AA;
-  --color-brand-300: #FDBA74;
-  --color-brand-400: #FB923C;
-  --color-brand-500: #F97316;
-  --color-brand-600: #EA580C;
-  --color-brand-700: #C2410C;
-  --color-brand-800: #9A3412;
-  --color-brand-900: #7C2D12;
-  --color-cream: #FFF7ED;
-  --color-text-strong: #1c1917;
+  --color-brand-50: 255 247 237;
+  --color-brand-100: 255 237 213;
+  --color-brand-200: 254 215 170;
+  --color-brand-300: 253 186 116;
+  --color-brand-400: 251 146 60;
+  --color-brand-500: 249 115 22;
+  --color-brand-600: 234 88 12;
+  --color-brand-700: 194 65 12;
+  --color-brand-800: 154 52 18;
+  --color-brand-900: 124 45 18;
+  --color-cream: 255 247 237;
+  --color-text-strong: 28 25 23;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
