@@ -4,6 +4,9 @@ import { loadProgress, saveProgress, loadHistory, addRecord } from '../games/sto
 import { animalImageUrl, localShadowSource, shuffle, type Animal, type Round } from '../games/shadow'
 import { makeSilhouette } from '../lib/silhouette'
 import GameHistoryChart from '../components/GameHistoryChart'
+import CaseScorePanel from '../components/CaseScorePanel'
+import { api } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 
 // 「影子配对」游戏。
 // 规则：每关 N 只动物，上方是打乱的黑色影子槽位，下方是打乱的彩色 AI 动物图，
@@ -22,6 +25,7 @@ interface Drag {
 }
 
 function ShadowMatch() {
+  const { user } = useAuth()
   const saved = useMemo(() => loadProgress(GAME_ID), [])
   const [level, setLevel] = useState(saved.level)
   const [score, setScore] = useState(saved.score)
@@ -169,6 +173,17 @@ function ShadowMatch() {
             >
               进入第 {level + 1} 关 →
             </button>
+            {user && (
+              <div className="mt-6 text-left">
+                <CaseScorePanel
+                  key={level}
+                  userId={user.id}
+                  onSubmit={async (input) => {
+                    await api.createGameSession(user.id, GAME_ID, { level, score, ...input })
+                  }}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 p-6">

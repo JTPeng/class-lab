@@ -1,6 +1,13 @@
 import type { Image, Lesson, LessonInput, LessonListItem } from '../types/lesson';
 import type { ReportStyle, VideoAnalysis, VideoAnalysisListItem } from '../types/video';
 import type { TrainingAttempt, TrainingQuestion, TrainingTopic } from '../types/training';
+import type {
+  CaseRecord,
+  CaseSessionRecord,
+  GameSessionRecord,
+  GuardianDifficulty,
+  TeacherScoreInput,
+} from '../types/case';
 import { videoMock } from './videoMock';
 import { trainingMock } from './trainingMock';
 
@@ -30,23 +37,113 @@ async function request<T>(path: string, options?: { method?: string; body?: unkn
   return res.json() as Promise<T>;
 }
 
-function generateLesson(userId: string, input: LessonInput): Promise<Lesson> {
-  return request<Lesson>(`/users/${userId}/lessons/generate`, {
+function generateLesson(userId: string, caseId: string, input: LessonInput): Promise<Lesson> {
+  return request<Lesson>(`/users/${userId}/cases/${caseId}/lessons/generate`, {
     method: 'POST',
     body: input,
   });
 }
 
-function listLessons(userId: string): Promise<LessonListItem[]> {
-  return request<LessonListItem[]>(`/users/${userId}/lessons`);
+function listLessons(caseId: string): Promise<LessonListItem[]> {
+  return request<LessonListItem[]>(`/cases/${caseId}/lessons`);
 }
 
-function getLesson(userId: string, id: string): Promise<Lesson> {
-  return request<Lesson>(`/users/${userId}/lessons/${id}`);
+function getLesson(caseId: string, id: string): Promise<Lesson> {
+  return request<Lesson>(`/cases/${caseId}/lessons/${id}`);
 }
 
-function deleteLesson(userId: string, id: string): Promise<void> {
-  return request<void>(`/users/${userId}/lessons/${id}`, { method: 'DELETE' });
+function deleteLesson(caseId: string, id: string): Promise<void> {
+  return request<void>(`/cases/${caseId}/lessons/${id}`, { method: 'DELETE' });
+}
+
+// ===== 个案建档 / 执行记录 / 家长分享 =====
+
+function listCases(userId: string): Promise<CaseRecord[]> {
+  return request<CaseRecord[]>(`/users/${userId}/cases`);
+}
+
+function createCase(
+  userId: string,
+  input: { name: string; baseline: string; targets: string[] },
+): Promise<CaseRecord> {
+  return request<CaseRecord>(`/users/${userId}/cases`, { method: 'POST', body: input });
+}
+
+function getCase(userId: string, caseId: string): Promise<CaseRecord> {
+  return request<CaseRecord>(`/users/${userId}/cases/${caseId}`);
+}
+
+function updateCase(
+  userId: string,
+  caseId: string,
+  patch: { name?: string; baseline?: string; targets?: string[] },
+): Promise<CaseRecord> {
+  return request<CaseRecord>(`/users/${userId}/cases/${caseId}`, { method: 'PUT', body: patch });
+}
+
+function deleteCaseRemote(userId: string, caseId: string): Promise<void> {
+  return request<void>(`/users/${userId}/cases/${caseId}`, { method: 'DELETE' });
+}
+
+function createCaseSession(
+  caseId: string,
+  input: {
+    lessonId: string | null;
+    trialsTotal: number;
+    trialsCorrect: number;
+    teacherCooperation: number;
+    teacherProgress: number;
+  },
+): Promise<CaseSessionRecord> {
+  return request<CaseSessionRecord>(`/cases/${caseId}/sessions`, { method: 'POST', body: input });
+}
+
+function listCaseSessions(
+  caseId: string,
+): Promise<{ sessions: CaseSessionRecord[]; insight: string | null }> {
+  return request(`/cases/${caseId}/sessions`);
+}
+
+function getShareView(
+  shareToken: string,
+): Promise<{ case: Pick<CaseRecord, 'name' | 'baseline' | 'targets'>; sessions: CaseSessionRecord[] }> {
+  return request(`/share/${shareToken}`);
+}
+
+function submitGuardianFeedback(
+  shareToken: string,
+  sessionId: string,
+  feedback: { difficulty: GuardianDifficulty; interest: number; comment: string | null },
+): Promise<void> {
+  return request<void>(`/share/${shareToken}/sessions/${sessionId}/guardian-feedback`, {
+    method: 'POST',
+    body: feedback,
+  });
+}
+
+// ===== 绘本打卡 / 游戏乐园 打分接入个案 =====
+
+function linkPictureBookScore(userId: string, id: string, input: TeacherScoreInput): Promise<void> {
+  return request<void>(`/users/${userId}/picturebooks/${id}/score`, { method: 'PUT', body: input });
+}
+
+function listCasePictureBooks(caseId: string): Promise<PictureBookRecordDto[]> {
+  return request<PictureBookRecordDto[]>(`/cases/${caseId}/picturebooks`);
+}
+
+function createGameSession(
+  userId: string,
+  gameId: string,
+  input: { level: number; score: number } & Partial<TeacherScoreInput>,
+): Promise<GameSessionRecord> {
+  return request<GameSessionRecord>(`/users/${userId}/games/${gameId}/sessions`, {
+    method: 'POST',
+    body: input,
+  });
+}
+
+function listCaseGameSessions(caseId: string): Promise<GameSessionRecord[]> {
+  return request<GameSessionRecord[]>(`/cases/${caseId}/game-sessions`);
 }
 
 async function generateImage(lessonId: string, refKey: string, prompt: string): Promise<Image> {
@@ -98,6 +195,9 @@ export interface PictureBookRecordDto {
   date: string;
   createdAt: string;
   count: number;
+  caseId?: string | null;
+  teacherCooperation?: number | null;
+  teacherProgress?: number | null;
 }
 
 function listPictureBooks(userId: string): Promise<PictureBookRecordDto[]> {
@@ -219,6 +319,19 @@ export const api = {
   listLessons,
   getLesson,
   deleteLesson,
+  listCases,
+  createCase,
+  getCase,
+  updateCase,
+  deleteCaseRemote,
+  createCaseSession,
+  listCaseSessions,
+  getShareView,
+  submitGuardianFeedback,
+  linkPictureBookScore,
+  listCasePictureBooks,
+  createGameSession,
+  listCaseGameSessions,
   generateImage,
   generatePicturebook,
   sharePicture,

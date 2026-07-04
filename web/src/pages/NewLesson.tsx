@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { buildTargetImagePrompt, targetRefKey } from '../lib/lessonImages'
@@ -11,6 +11,7 @@ const MAX_AUTO_IMAGE_COUNT = 10
 function NewLesson() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { caseId } = useParams<{ caseId: string }>()
 
   const [skill, setSkill] = useState('')
   const [availableTools, setAvailableTools] = useState<string[]>([])
@@ -42,6 +43,7 @@ function NewLesson() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    if (!caseId) return
     if (!skill.trim()) {
       setError('请填写目标技能')
       return
@@ -59,7 +61,7 @@ function NewLesson() {
     setPhase('lesson')
     setError(null)
     try {
-      const lesson = await api.generateLesson(user!.id, input)
+      const lesson = await api.generateLesson(user!.id, caseId, input)
 
       const requested = Math.min(Math.max(Number(imageCount) || 0, 0), MAX_AUTO_IMAGE_COUNT)
       const count = Math.min(requested, lesson.targetList.length)
@@ -76,7 +78,7 @@ function NewLesson() {
         )
       }
 
-      navigate('/lessons/' + lesson.id)
+      navigate(`/cases/${caseId}/lessons/${lesson.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : '生成失败，请重试')
       setSubmitting(false)
@@ -86,8 +88,8 @@ function NewLesson() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
       <div className="max-w-2xl mx-auto">
-        <Link to="/" className="text-sm font-bold text-brand-600 hover:underline">
-          ← 返回首页
+        <Link to={`/cases/${caseId}`} className="text-sm font-bold text-brand-600 hover:underline">
+          ← 返回个案
         </Link>
         <h1 className="text-3xl font-black text-stone-900 mt-2 mb-6">新建教案</h1>
 

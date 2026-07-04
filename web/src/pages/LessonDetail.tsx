@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client'
-import { useAuth } from '../auth/AuthContext'
 import type { Lesson } from '../types/lesson'
 import Hero from '../components/poster/Hero'
 import PhaseTimeline from '../components/poster/PhaseTimeline'
@@ -11,22 +10,21 @@ import TargetCarousel from '../components/TargetCarousel'
 import SessionNote from '../components/poster/SessionNote'
 
 function LessonDetail() {
-  const { user } = useAuth()
-  const { id } = useParams<{ id: string }>()
+  const { caseId, id } = useParams<{ caseId: string; id: string }>()
   const [lesson, setLesson] = useState<Lesson | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!id) return
+    if (!caseId || !id) return
     setLoading(true)
     setError(null)
     api
-      .getLesson(user!.id, id)
+      .getLesson(caseId, id)
       .then(setLesson)
       .catch((err) => setError(err instanceof Error ? err.message : '加载失败'))
       .finally(() => setLoading(false))
-  }, [id, user])
+  }, [caseId, id])
 
   if (loading) {
     return (
@@ -36,7 +34,7 @@ function LessonDetail() {
     )
   }
 
-  if (error || !lesson) {
+  if (error || !lesson || !caseId) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-brand-50">
         <p className="text-rose-600">{error ?? '未找到该教案'}</p>
@@ -51,8 +49,8 @@ function LessonDetail() {
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 px-4 py-10">
       <div className="mx-auto max-w-4xl space-y-10">
         <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
-          <Link to="/" className="text-sm font-bold text-brand-600 hover:underline">
-            ← 返回首页
+          <Link to={`/cases/${caseId}`} className="text-sm font-bold text-brand-600 hover:underline">
+            ← 返回个案
           </Link>
           <button
             type="button"
@@ -78,6 +76,8 @@ function LessonDetail() {
           procedure={lesson.sto.procedure}
           dataCollection={lesson.sto.dataCollection}
           masteryCriteria={lesson.sto.masteryCriteria}
+          caseId={caseId}
+          lessonId={lesson.id}
         />
 
         <TargetCarousel

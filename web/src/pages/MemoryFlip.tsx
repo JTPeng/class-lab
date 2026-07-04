@@ -5,6 +5,9 @@ import { fruitCardSource, type CardFace } from '../games/cards'
 import { shuffle } from '../games/shapes'
 import ShapeIcon from '../components/ShapeIcon'
 import GameHistoryChart from '../components/GameHistoryChart'
+import CaseScorePanel from '../components/CaseScorePanel'
+import { api } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 
 // 「记忆翻牌」游戏。
 // 规则：牌面朝下铺开，点击翻开两张，形状+颜色相同即配对成功 +10 分（配对后保持翻开）。
@@ -23,6 +26,7 @@ interface Card {
 }
 
 function MemoryFlip() {
+  const { user } = useAuth()
   const saved = useMemo(() => loadProgress(GAME_ID), [])
   const [level, setLevel] = useState(saved.level)
   const [score, setScore] = useState(saved.score)
@@ -140,6 +144,17 @@ function MemoryFlip() {
             >
               进入第 {level + 1} 关 →
             </button>
+            {user && (
+              <div className="mt-6 text-left">
+                <CaseScorePanel
+                  key={level}
+                  userId={user.id}
+                  onSubmit={async (input) => {
+                    await api.createGameSession(user.id, GAME_ID, { level, score, ...input })
+                  }}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 p-6">

@@ -2,29 +2,31 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import LoginScreen from '../auth/LoginScreen'
 import ThemeSwitcher from './ThemeSwitcher'
+import { GameIcon, LessonIcon, PictureBookIcon, TrainingIcon, VideoIcon } from './NavIcons'
 
 // 顶部常驻切换菜单（DTT 暖色风格）。两个 Tab 在「DTT 教案」与「绘本打卡」两个模块间切换，
 // 结构可扩展第三个项目。下方 <Outlet/> 渲染当前模块页面。
 const tabs = [
   {
     label: 'DTT 教案',
-    icon: '📋',
+    icon: LessonIcon,
     to: '/',
     match: (p: string) =>
       !p.startsWith('/picture-book') &&
       !p.startsWith('/games') &&
       !p.startsWith('/video') &&
-      !p.startsWith('/training'),
+      !p.startsWith('/training') &&
+      !p.startsWith('/share'),
   },
   {
     label: '绘本打卡',
-    icon: '📖',
+    icon: PictureBookIcon,
     to: '/picture-book',
     match: (p: string) => p.startsWith('/picture-book'),
   },
-  { label: '游戏乐园', icon: '🎮', to: '/games', match: (p: string) => p.startsWith('/games') },
-  { label: '视频分析', icon: '🎥', to: '/video', match: (p: string) => p.startsWith('/video') },
-  { label: '培训测评', icon: '🎓', to: '/training', match: (p: string) => p.startsWith('/training') },
+  { label: '游戏乐园', icon: GameIcon, to: '/games', match: (p: string) => p.startsWith('/games') },
+  { label: '视频分析', icon: VideoIcon, to: '/video', match: (p: string) => p.startsWith('/video') },
+  { label: '培训测评', icon: TrainingIcon, to: '/training', match: (p: string) => p.startsWith('/training') },
 ]
 
 // 头部登录态：全局门禁下未登录不会渲染到这里，故只展示「用户名 + 退出」。
@@ -63,7 +65,7 @@ function BottomNav({ pathname }: { pathname: string }) {
                 : 'flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-stone-500'
             }
           >
-            <span className="text-xl leading-none">{tab.icon}</span>
+            <tab.icon className="w-6 h-6" />
             <span className="text-[11px] font-bold leading-none">{tab.label}</span>
           </Link>
         )

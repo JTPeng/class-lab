@@ -1,8 +1,10 @@
 import { Route, Routes } from 'react-router-dom'
 import AppShell from './components/AppShell'
-import Home from './pages/Home'
+import Cases from './pages/Cases'
+import CaseDetail from './pages/CaseDetail'
 import NewLesson from './pages/NewLesson'
 import LessonDetail from './pages/LessonDetail'
+import GuardianView from './pages/GuardianView'
 import PictureBook from './pages/PictureBook'
 import Games from './pages/Games'
 import AnimalSound from './pages/AnimalSound'
@@ -19,11 +21,14 @@ import TrainingQuiz from './pages/TrainingQuiz'
 function App() {
   return (
     <Routes>
+      {/* 家长/督导免登录只读分享页，不受 AppShell 登录门禁约束 */}
+      <Route path="/share/:shareToken" element={<GuardianView />} />
       <Route element={<AppShell />}>
-        {/* DTT 教案模块 */}
-        <Route path="/" element={<Home />} />
-        <Route path="/new" element={<NewLesson />} />
-        <Route path="/lessons/:id" element={<LessonDetail />} />
+        {/* DTT 教案模块：个案建档 → 教案 → 执行记录闭环 */}
+        <Route path="/" element={<Cases />} />
+        <Route path="/cases/:caseId" element={<CaseDetail />} />
+        <Route path="/cases/:caseId/new" element={<NewLesson />} />
+        <Route path="/cases/:caseId/lessons/:id" element={<LessonDetail />} />
         {/* 绘本打卡模块 */}
         <Route path="/picture-book" element={<PictureBook />} />
         {/* 游戏乐园模块 */}
