@@ -49,7 +49,7 @@ function ThemeSwitcher() {
   }, [])
 
   return (
-    <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-1 rounded-2xl bg-white/95 p-2 shadow-lg ring-1 ring-black/10">
+    <div className="fixed bottom-24 right-4 md:bottom-4 z-[100] flex flex-col gap-1 rounded-2xl bg-white/95 p-2 shadow-lg ring-1 ring-black/10">
       {THEMES.map((theme) => (
         <button
           key={theme.key}
