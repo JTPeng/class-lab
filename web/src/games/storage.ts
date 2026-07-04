@@ -77,6 +77,35 @@ export function saveProgress(gameId: string, progress: GameProgress): void {
   }
 }
 
+// 单局战绩：每完成一关记一条，仅存本地（无后端持久化，换设备/清缓存会丢）。
+export interface GameRecord {
+  level: number; // 完成的关卡
+  score: number; // 完成时的累计分数
+  timestamp: number; // Date.now()
+}
+
+const HISTORY_MAX = 20; // 只保留最近 N 局，避免无限增长
+
+function historyKey(gameId: string, userId: string | null): string {
+  return `${PREFIX}history_${userId ?? 'anon'}_${gameId}`;
+}
+
+export function loadHistory(gameId: string): GameRecord[] {
+  if (!available()) return [];
+  try {
+    const raw = localStorage.getItem(historyKey(gameId, currentUserId()));
+    return raw ? (JSON.parse(raw) as GameRecord[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addRecord(gameId: string, record: GameRecord): void {
+  if (!available()) return;
+  const next = [...loadHistory(gameId), record].slice(-HISTORY_MAX);
+  localStorage.setItem(historyKey(gameId, currentUserId()), JSON.stringify(next));
+}
+
 // 登录成功后调用：把后端各游戏进度拉回本地缓存（覆盖该用户命名空间）。
 export async function hydrateProgress(userId: string): Promise<void> {
   if (!available()) return;

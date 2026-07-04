@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { loadProgress, saveProgress } from '../games/storage'
+import { loadProgress, saveProgress, loadHistory, addRecord } from '../games/storage'
 import { localShapeSource, shuffle, type Round, type ShapeSpec } from '../games/shapes'
 import ShapeIcon from '../components/ShapeIcon'
+import GameHistoryChart from '../components/GameHistoryChart'
 
 // 「形状配对」游戏。
 // 规则：每关有 N 个彩色图块和 N 个空心槽位，把图块拖到「同形状同颜色」的槽位即匹配成功 +10 分。
@@ -30,6 +31,7 @@ function ShapeMatch() {
   const [matched, setMatched] = useState<Set<string>>(new Set())
   const [drag, setDrag] = useState<Drag | null>(null)
   const [wrongId, setWrongId] = useState<string | null>(null) // 拖错时抖动提示
+  const [history, setHistory] = useState(() => loadHistory(GAME_ID))
 
   const levelDone = round.pairs.length > 0 && matched.size >= round.pairs.length
 
@@ -91,6 +93,8 @@ function ShapeMatch() {
   }
 
   function nextLevel() {
+    addRecord(GAME_ID, { level, score, timestamp: Date.now() })
+    setHistory(loadHistory(GAME_ID))
     const nl = level + 1
     setLevel(nl)
     applyRound(nl)
@@ -207,6 +211,8 @@ function ShapeMatch() {
             </div>
           </div>
         )}
+
+        <GameHistoryChart records={history} />
       </div>
 
       {/* 拖拽跟随浮层：跟随手指/鼠标，不参与命中检测 */}

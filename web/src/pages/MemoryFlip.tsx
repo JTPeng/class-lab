@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { loadProgress, saveProgress } from '../games/storage'
+import { loadProgress, saveProgress, loadHistory, addRecord } from '../games/storage'
 import { fruitCardSource, type CardFace } from '../games/cards'
 import { shuffle } from '../games/shapes'
 import ShapeIcon from '../components/ShapeIcon'
+import GameHistoryChart from '../components/GameHistoryChart'
 
 // 「记忆翻牌」游戏。
 // 规则：牌面朝下铺开，点击翻开两张，形状+颜色相同即配对成功 +10 分（配对后保持翻开）。
@@ -30,6 +31,7 @@ function MemoryFlip() {
   const [flipped, setFlipped] = useState<string[]>([]) // 当前翻开待判定的 cardId（≤2）
   const [matched, setMatched] = useState<Set<string>>(new Set())
   const [lock, setLock] = useState(false) // 判定间隙锁点击
+  const [history, setHistory] = useState(() => loadHistory(GAME_ID))
 
   const levelDone = deck.length > 0 && matched.size >= deck.length
 
@@ -88,6 +90,8 @@ function MemoryFlip() {
   }
 
   function nextLevel() {
+    addRecord(GAME_ID, { level, score, timestamp: Date.now() })
+    setHistory(loadHistory(GAME_ID))
     const nl = level + 1
     setLevel(nl)
     applyRound(nl)
@@ -180,6 +184,8 @@ function MemoryFlip() {
             </div>
           </div>
         )}
+
+        <GameHistoryChart records={history} />
       </div>
     </div>
   )

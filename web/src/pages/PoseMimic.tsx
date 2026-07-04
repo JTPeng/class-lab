@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FilesetResolver, PoseLandmarker, type PoseLandmarkerResult } from '@mediapipe/tasks-vision'
-import { loadProgress, saveProgress } from '../games/storage'
+import { loadProgress, saveProgress, loadHistory, addRecord } from '../games/storage'
 import { poseForLevel, poseImageUrl, scorePose, type Landmark } from '../games/poses'
+import GameHistoryChart from '../components/GameHistoryChart'
 
 // 「跟我做动作」游戏。
 // 左侧是 AI 生成的卡通动作参考图，右侧是摄像头。小朋友模仿动作，浏览器用 MediaPipe
@@ -31,6 +32,7 @@ function PoseMimic() {
   const [similarity, setSimilarity] = useState(0)
   const [holdMs, setHoldMs] = useState(0)
   const [levelDone, setLevelDone] = useState(false)
+  const [history, setHistory] = useState(() => loadHistory(GAME_ID))
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const landmarkerRef = useRef<PoseLandmarker | null>(null)
@@ -155,6 +157,8 @@ function PoseMimic() {
   }, [levelDone])
 
   function nextLevel() {
+    addRecord(GAME_ID, { level, score, timestamp: Date.now() })
+    setHistory(loadHistory(GAME_ID))
     setLevel((l) => l + 1)
   }
 
@@ -282,6 +286,8 @@ function PoseMimic() {
             )}
           </div>
         </div>
+
+        <GameHistoryChart records={history} />
       </div>
     </div>
   )

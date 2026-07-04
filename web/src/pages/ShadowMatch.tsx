@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { loadProgress, saveProgress } from '../games/storage'
+import { loadProgress, saveProgress, loadHistory, addRecord } from '../games/storage'
 import { animalImageUrl, localShadowSource, shuffle, type Animal, type Round } from '../games/shadow'
 import { makeSilhouette } from '../lib/silhouette'
+import GameHistoryChart from '../components/GameHistoryChart'
 
 // 「影子配对」游戏。
 // 规则：每关 N 只动物，上方是打乱的黑色影子槽位，下方是打乱的彩色 AI 动物图，
@@ -33,6 +34,7 @@ function ShadowMatch() {
   const [wrongName, setWrongName] = useState<string | null>(null) // 拖错时抖动提示
   const [shadows, setShadows] = useState<Record<string, string | null>>({}) // 动物名 → 剪影 dataURL（null=回退 emoji）
   const [imgError, setImgError] = useState<Set<string>>(new Set()) // 彩色图加载失败 → 回退 emoji
+  const [history, setHistory] = useState(() => loadHistory(GAME_ID))
 
   const levelDone = round.animals.length > 0 && matched.size >= round.animals.length
 
@@ -95,6 +97,8 @@ function ShadowMatch() {
   }
 
   function nextLevel() {
+    addRecord(GAME_ID, { level, score, timestamp: Date.now() })
+    setHistory(loadHistory(GAME_ID))
     const nl = level + 1
     setLevel(nl)
     applyRound(nl)
@@ -236,6 +240,8 @@ function ShadowMatch() {
             </div>
           </div>
         )}
+
+        <GameHistoryChart records={history} />
       </div>
 
       {/* 拖拽跟随浮层：跟随手指/鼠标，不参与命中检测 */}

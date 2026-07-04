@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ANIMALS, animalImageUrl, playRiddle, shuffle, type Animal } from '../games/animals'
-import { loadProgress, saveProgress } from '../games/storage'
+import { loadProgress, saveProgress, loadHistory, addRecord } from '../games/storage'
+import GameHistoryChart from '../components/GameHistoryChart'
 
 // 「听声音猜动物」游戏。
 // 规则：每关 5 题，AI 真人音色读一句谜语（不说名字），从若干选项中选出正确动物。答对 +10 分。
@@ -38,6 +39,7 @@ function AnimalSound() {
   const [picked, setPicked] = useState<Animal | null>(null)
   const [levelDone, setLevelDone] = useState(false)
   const [speaking, setSpeaking] = useState(false) // 正在合成/播放语音
+  const [history, setHistory] = useState(() => loadHistory(GAME_ID))
 
   // 播放当前题目的谜语语音（首次合成有几秒延迟，speaking 期间禁用按钮）。
   async function speak(animal: Animal) {
@@ -80,6 +82,8 @@ function AnimalSound() {
   }
 
   function nextLevel() {
+    addRecord(GAME_ID, { level, score, timestamp: Date.now() })
+    setHistory(loadHistory(GAME_ID))
     const nl = level + 1
     setLevel(nl)
     setQIndex(0)
@@ -203,6 +207,8 @@ function AnimalSound() {
             )}
           </div>
         )}
+
+        <GameHistoryChart records={history} />
       </div>
     </div>
   )
