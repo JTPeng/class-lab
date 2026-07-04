@@ -100,7 +100,7 @@ function TargetCarousel({
           type="button"
           onClick={handleGenerateAll}
           disabled={generatingAll}
-          className="shrink-0 rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60 print:hidden"
+          className="shrink-0 rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 print:hidden"
         >
           {generatingAll ? `生成中 ${progress.done}/${progress.total}...` : '✨ 一键生成全部配图'}
         </button>
@@ -112,7 +112,7 @@ function TargetCarousel({
             type="button"
             onClick={goPrev}
             aria-label="上一个目标"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-black text-brand-600 transition hover:bg-brand-200 print:hidden"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-black text-brand-600 transition hover:bg-brand-200 active:scale-[0.97] print:hidden"
           >
             ‹
           </button>
@@ -151,7 +151,7 @@ function TargetCarousel({
                           type="button"
                           onClick={() => generateOne(idx)}
                           disabled={generatingAll}
-                          className="mt-1 rounded-full bg-brand-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60 print:hidden"
+                          className="mt-1 rounded-full bg-brand-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 print:hidden"
                         >
                           重试
                         </button>
@@ -164,7 +164,7 @@ function TargetCarousel({
                     )}
                   </div>
 
-                  <p className="mt-4 text-center text-lg font-black text-stone-900">{target.target}</p>
+                  <p className="mt-4 text-center text-lg font-extrabold text-stone-900">{target.target}</p>
                   <p className="mt-1 text-center text-xs font-bold uppercase tracking-wide text-brand-500">
                     第 {idx + 1} / {total} 个目标
                   </p>
@@ -177,7 +177,7 @@ function TargetCarousel({
             type="button"
             onClick={goNext}
             aria-label="下一个目标"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-black text-brand-600 transition hover:bg-brand-200 print:hidden"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-black text-brand-600 transition hover:bg-brand-200 active:scale-[0.97] print:hidden"
           >
             ›
           </button>
@@ -190,7 +190,7 @@ function TargetCarousel({
               type="button"
               onClick={() => setActive(idx)}
               aria-label={`跳转到第 ${idx + 1} 个目标`}
-              className={`h-2.5 rounded-full transition ${
+              className={`h-2.5 rounded-full transition active:scale-[0.97] ${
                 idx === active ? 'w-6 bg-brand-500' : 'w-2.5 bg-brand-200 hover:bg-brand-300'
               }`}
             />

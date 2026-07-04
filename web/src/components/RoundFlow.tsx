@@ -70,7 +70,7 @@ function RoundFlow({
           还原 SD → 正确分支 → 错误分支 的完整教学流程，交互按钮统一 print:hidden 隐藏。 */}
       <div className="rounded-2xl bg-white p-6 shadow-card ring-1 ring-brand-100 sm:p-8">
         <div className={`${state === 'sd' ? '' : 'hidden'} print:block print:mb-6`}>
-          <p className="inline-block rounded-full bg-brand-500 px-3 py-1 text-xs font-black uppercase tracking-wide text-white">
+          <p className="inline-block rounded-full bg-brand-500 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-white">
             SD · 指令
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-800">{procedure.sd}</p>
@@ -78,14 +78,14 @@ function RoundFlow({
             <button
               type="button"
               onClick={handleCorrect}
-              className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-emerald-600"
+              className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-emerald-600 active:scale-[0.98]"
             >
               孩子正确
             </button>
             <button
               type="button"
               onClick={handleIncorrect}
-              className="rounded-full bg-rose-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-rose-600"
+              className="rounded-full bg-rose-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-rose-600 active:scale-[0.98]"
             >
               孩子错误
             </button>
@@ -93,36 +93,36 @@ function RoundFlow({
         </div>
 
         <div className={`${state === 'correct' ? '' : 'hidden'} print:block print:mb-6`}>
-          <p className="inline-block rounded-full bg-emerald-500 px-3 py-1 text-xs font-black uppercase tracking-wide text-white">
+          <p className="inline-block rounded-full bg-emerald-500 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-white">
             ✓ 正确反应
           </p>
           <p className="mt-4 text-lg leading-relaxed text-emerald-900">{procedure.correct.response}</p>
           <div className="mt-4 rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-600">C+ 后果</p>
+            <p className="text-xs font-extrabold uppercase tracking-wide text-emerald-600">C+ 后果</p>
             <p className="mt-1 text-emerald-900">{procedure.correct.consequence}</p>
           </div>
           <button
             type="button"
             onClick={() => setState('sd')}
-            className="mt-6 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 print:hidden"
+            className="mt-6 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 active:scale-[0.98] print:hidden"
           >
             再来一回合
           </button>
         </div>
 
         <div className={`${state === 'incorrect' ? '' : 'hidden'} print:block`}>
-          <p className="inline-block rounded-full bg-rose-500 px-3 py-1 text-xs font-black uppercase tracking-wide text-white">
+          <p className="inline-block rounded-full bg-rose-500 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-white">
             ✕ 错误反应
           </p>
           <p className="mt-4 text-lg leading-relaxed text-rose-900">{procedure.incorrect.response}</p>
           <div className="mt-4 rounded-xl bg-rose-50 p-4 ring-1 ring-rose-200">
-            <p className="text-xs font-black uppercase tracking-wide text-rose-600">C− 纠正</p>
+            <p className="text-xs font-extrabold uppercase tracking-wide text-rose-600">C− 纠正</p>
             <p className="mt-1 text-rose-900">{procedure.incorrect.correction}</p>
           </div>
           <button
             type="button"
             onClick={() => setState('sd')}
-            className="mt-6 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 print:hidden"
+            className="mt-6 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 active:scale-[0.98] print:hidden"
           >
             再来一回合
           </button>
@@ -142,7 +142,7 @@ function RoundFlow({
                   type="button"
                   onClick={() => setShowScoreForm(true)}
                   disabled={correctCount + incorrectCount === 0}
-                  className="mt-4 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 disabled:opacity-50"
+                  className="mt-4 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 active:scale-[0.98] disabled:opacity-50"
                 >
                   结束训练
                 </button>
@@ -181,7 +181,7 @@ function RoundFlow({
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 disabled:opacity-50"
+                      className="rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 active:scale-[0.98] disabled:opacity-50"
                     >
                       {submitting ? '提交中...' : '提交打分'}
                     </button>
@@ -189,7 +189,7 @@ function RoundFlow({
                       type="button"
                       onClick={() => setShowScoreForm(false)}
                       disabled={submitting}
-                      className="rounded-full bg-stone-200 px-6 py-2.5 text-sm font-bold text-stone-800 hover:bg-stone-300"
+                      className="rounded-full bg-stone-200 px-6 py-2.5 text-sm font-bold text-stone-800 hover:bg-stone-300 active:scale-[0.98]"
                     >
                       取消
                     </button>
@@ -207,11 +207,11 @@ function RoundFlow({
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border-l-4 border-brand-400 bg-white p-5 shadow-card ring-1 ring-brand-100">
-          <p className="text-xs font-black uppercase tracking-wide text-brand-600">数据收集</p>
+          <p className="text-xs font-extrabold uppercase tracking-wide text-brand-600">数据收集</p>
           <p className="mt-1 text-stone-700">{dataCollection}</p>
         </div>
         <div className="rounded-2xl border-l-4 border-brand-400 bg-white p-5 shadow-card ring-1 ring-brand-100">
-          <p className="text-xs font-black uppercase tracking-wide text-brand-600">通过标准</p>
+          <p className="text-xs font-extrabold uppercase tracking-wide text-brand-600">通过标准</p>
           <p className="mt-1 text-stone-700">{masteryCriteria}</p>
         </div>
       </div>

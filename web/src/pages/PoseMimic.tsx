@@ -191,7 +191,7 @@ function PoseMimic() {
           <button
             type="button"
             onClick={restart}
-            className="text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-full px-3 py-1 transition-colors"
+            className="text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 active:scale-[0.97] rounded-full px-3 py-1 transition-colors"
           >
             重新开始
           </button>
@@ -206,7 +206,7 @@ function PoseMimic() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* 参考图 */}
           <div className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 p-5 text-center">
-            <div className="text-sm font-black text-stone-900 mb-1">
+            <div className="text-sm font-bold text-stone-900 mb-1">
               {pose.emoji} 模仿这个动作：{pose.name}
             </div>
             <p className="text-xs text-stone-500 mb-3">{pose.hint}</p>
@@ -243,7 +243,7 @@ function PoseMimic() {
                   <button
                     type="button"
                     onClick={() => window.location.reload()}
-                    className="bg-white text-stone-900 font-bold text-xs px-4 py-2 rounded-full"
+                    className="bg-white text-stone-900 font-bold text-xs px-4 py-2 rounded-full active:scale-[0.97] transition-transform"
                   >
                     刷新重试
                   </button>
@@ -253,11 +253,11 @@ function PoseMimic() {
               {levelDone && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-green-600/85 text-white text-center px-4">
                   <div className="text-5xl">🎉</div>
-                  <div className="text-lg font-black">动作正确！+{SCORE_PER_POSE} 分</div>
+                  <div className="text-lg font-extrabold">动作正确！+{SCORE_PER_POSE} 分</div>
                   <button
                     type="button"
                     onClick={nextLevel}
-                    className="bg-white text-green-700 font-black px-5 py-2 rounded-full shadow-soft"
+                    className="bg-white text-green-700 font-black px-5 py-2 rounded-full shadow-soft active:scale-[0.98] transition-transform"
                   >
                     下一个动作 →
                   </button>
@@ -313,7 +313,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 py-3 text-center">
       <div className="text-xs text-stone-400 font-bold">{label}</div>
-      <div className="text-lg font-black text-stone-900">{value}</div>
+      <div className="text-lg font-bold text-stone-900">{value}</div>
     </div>
   )
 }

@@ -21,13 +21,13 @@ export default function TrainingTopics() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <h1 className="text-xl font-black text-stone-900 mb-4">培训学习</h1>
+      <h1 className="text-xl font-extrabold text-stone-900 mb-4">培训学习</h1>
       <div className="grid gap-3">
         {topics.map((t) => (
           <Link
             key={t.id}
             to={`/training/${t.id}`}
-            className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 p-4 hover:bg-brand-50 transition-colors"
+            className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 p-4 hover:bg-brand-50 transition-colors active:scale-[0.97]"
           >
             <h2 className="font-bold text-stone-800">{t.title}</h2>
             {t.structuredContent && (

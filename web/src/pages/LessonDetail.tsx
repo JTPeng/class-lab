@@ -55,7 +55,7 @@ function LessonDetail() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white shadow-soft transition hover:bg-brand-600"
+            className="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white shadow-soft transition hover:bg-brand-600 active:scale-[0.98]"
           >
             ⬇ 下载 PDF
           </button>

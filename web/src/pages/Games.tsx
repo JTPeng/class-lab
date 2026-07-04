@@ -68,7 +68,7 @@ function Games() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
       <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto">
-        <h1 className="text-3xl font-black text-stone-900 mb-2">
+        <h1 className="text-3xl font-extrabold text-stone-900 mb-2">
           🎮 游戏<span className="text-brand-500">乐园</span>
         </h1>
         <p className="text-stone-600 mb-8">选择一个小游戏开始玩吧，分数和关卡都会自动保存。</p>
@@ -80,7 +80,7 @@ function Games() {
             const inner = (
               <>
                 <div className="text-5xl mb-4">{game.emoji}</div>
-                <h2 className="text-lg font-black text-stone-900">{game.title}</h2>
+                <h2 className="text-lg font-bold text-stone-900">{game.title}</h2>
                 <p className="text-sm text-stone-600 mt-2 min-h-[2.5rem]">{game.desc}</p>
                 {progress && (
                   <div className="mt-4 flex gap-2">
@@ -115,7 +115,7 @@ function Games() {
               <Link
                 key={game.id}
                 to={game.to}
-                className="block bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:shadow-soft hover:-translate-y-1 transition-all"
+                className="block bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:-translate-y-0.5 hover:shadow-float transition-all duration-300 ease-bounce-soft active:scale-[0.97]"
               >
                 {inner}
               </Link>

@@ -91,7 +91,7 @@ function NewLesson() {
         <Link to={`/cases/${caseId}`} className="text-sm font-bold text-brand-600 hover:underline">
           ← 返回个案
         </Link>
-        <h1 className="text-3xl font-black text-stone-900 mt-2 mb-6">新建教案</h1>
+        <h1 className="text-3xl font-extrabold text-stone-900 mt-2 mb-6">新建教案</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
           <div>
@@ -130,7 +130,7 @@ function NewLesson() {
                 type="button"
                 onClick={addTool}
                 disabled={submitting}
-                className="px-4 py-2 rounded-xl bg-stone-200 text-stone-800 hover:bg-stone-300 disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-stone-200 text-stone-800 hover:bg-stone-300 disabled:opacity-50 active:scale-[0.97]"
               >
                 添加
               </button>
@@ -148,7 +148,7 @@ function NewLesson() {
                       onClick={() => removeTool(tool)}
                       disabled={submitting}
                       aria-label={`移除 ${tool}`}
-                      className="text-brand-600 hover:text-brand-900 disabled:opacity-50"
+                      className="text-brand-600 hover:text-brand-900 disabled:opacity-50 active:scale-[0.97]"
                     >
                       ×
                     </button>
@@ -231,7 +231,7 @@ function NewLesson() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-brand-500 text-white font-medium py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-brand-500 text-white font-medium py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
           >
             {submitting
               ? phase === 'images'

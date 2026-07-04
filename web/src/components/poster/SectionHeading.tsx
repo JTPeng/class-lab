@@ -6,7 +6,7 @@ function SectionHeading({ children, sub }: { children: ReactNode; sub?: string }
     <div className="mb-6 flex items-start gap-3">
       <span className="mt-1.5 h-8 w-1.5 shrink-0 rounded-full bg-brand-500" />
       <div>
-        <h2 className="text-3xl font-black tracking-tight text-stone-900 sm:text-4xl">{children}</h2>
+        <h2 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">{children}</h2>
         {sub && (
           <p className="mt-1 text-xs font-bold uppercase tracking-[0.15em] text-brand-500">{sub}</p>
         )}

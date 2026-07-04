@@ -4,7 +4,7 @@ function SessionNote({ text }: { text: string }) {
     <section className="flex items-start gap-4 rounded-2xl border-l-8 border-brand-500 bg-brand-100 p-6 shadow-card">
       <span className="text-3xl" aria-hidden="true">💡</span>
       <div>
-        <h2 className="text-sm font-black uppercase tracking-wide text-brand-700">单次训练建议</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wide text-brand-700">单次训练建议</h2>
         <p className="mt-1 text-lg font-medium text-stone-800">{text}</p>
       </div>
     </section>

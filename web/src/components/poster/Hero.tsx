@@ -16,8 +16,8 @@ function Hero({ title, goalDescription, passCriteria, context }: HeroProps) {
       <div className="pointer-events-none absolute right-1/4 top-1/2 h-24 w-24 rounded-full bg-brand-300/40" />
 
       <div className="relative">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-white/80">教案详情 · 长期目标</p>
-        <h1 className="mt-3 text-4xl font-black leading-tight text-white drop-shadow-sm sm:text-6xl">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80">教案详情 · 长期目标</p>
+        <h1 className="mt-3 text-4xl font-extrabold leading-tight text-white drop-shadow-sm sm:text-6xl">
           {title}
         </h1>
         <p className="mt-5 max-w-3xl text-xl font-bold leading-snug text-white/95 sm:text-2xl">

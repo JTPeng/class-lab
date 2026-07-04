@@ -98,7 +98,7 @@ export default function TrainingQuiz() {
   if (result) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <h1 className="text-xl font-black text-stone-900 mb-3">测评结果</h1>
+        <h1 className="text-xl font-extrabold text-stone-900 mb-3">测评结果</h1>
         <p className="text-lg font-bold text-brand-600 mb-4">
           得分：{result.score} / {questions.length}
         </p>
@@ -132,8 +132,8 @@ export default function TrainingQuiz() {
             onClick={() => toggleOption(index, i, q.type === 'multi')}
             className={
               selected.includes(i)
-                ? 'w-full text-left px-4 py-2 rounded-xl bg-brand-500 text-white font-bold disabled:opacity-70'
-                : 'w-full text-left px-4 py-2 rounded-xl bg-white ring-1 ring-brand-100 text-stone-700 disabled:opacity-70'
+                ? 'w-full text-left px-4 py-2 rounded-xl bg-brand-500 text-white font-bold disabled:opacity-70 active:scale-[0.98] transition-transform'
+                : 'w-full text-left px-4 py-2 rounded-xl bg-white ring-1 ring-brand-100 text-stone-700 disabled:opacity-70 active:scale-[0.98] transition-transform'
             }
           >
             {opt}
@@ -150,7 +150,7 @@ export default function TrainingQuiz() {
         <button
           disabled={index === 0}
           onClick={() => setIndex((i) => i - 1)}
-          className="px-4 py-2 rounded-full font-bold text-stone-500 disabled:opacity-40"
+          className="px-4 py-2 rounded-full font-bold text-stone-500 disabled:opacity-40 active:scale-[0.97] transition-transform"
         >
           上一题
         </button>
@@ -158,7 +158,7 @@ export default function TrainingQuiz() {
           <button
             disabled={selected.length === 0}
             onClick={checkAnswer}
-            className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft disabled:opacity-40"
+            className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft disabled:opacity-40 active:scale-[0.98] transition-transform"
           >
             提交答案
           </button>
@@ -166,7 +166,7 @@ export default function TrainingQuiz() {
           <button
             disabled={submitting}
             onClick={advance}
-            className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft disabled:opacity-40"
+            className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft disabled:opacity-40 active:scale-[0.98] transition-transform"
           >
             {submitting ? '提交中…' : isLast ? '查看结果' : '下一题'}
           </button>

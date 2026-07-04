@@ -149,13 +149,13 @@ function VideoAnalysis() {
 
   const tabClass = (active: boolean) =>
     active
-      ? 'px-4 py-1.5 rounded-full text-sm font-bold bg-brand-500 text-white shadow-soft transition-colors'
-      : 'px-4 py-1.5 rounded-full text-sm font-bold text-stone-600 hover:bg-brand-100 transition-colors'
+      ? 'px-4 py-1.5 rounded-full text-sm font-bold bg-brand-500 text-white shadow-soft transition-colors active:scale-[0.97]'
+      : 'px-4 py-1.5 rounded-full text-sm font-bold text-stone-600 hover:bg-brand-100 transition-colors active:scale-[0.97]'
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-black text-stone-900 mb-2">
+        <h1 className="text-3xl font-extrabold text-stone-900 mb-2">
           🎬 视频<span className="text-brand-500">分析</span>
         </h1>
         <p className="text-stone-600 mb-8">
@@ -210,8 +210,8 @@ function VideoAnalysis() {
                   onClick={() => setStyle(s)}
                   className={
                     style === s
-                      ? 'px-3.5 py-1.5 rounded-full text-sm font-bold bg-brand-500 text-white shadow-soft transition-colors disabled:opacity-50'
-                      : 'px-3.5 py-1.5 rounded-full text-sm font-bold text-stone-600 bg-stone-100 hover:bg-brand-100 transition-colors disabled:opacity-50'
+                      ? 'px-3.5 py-1.5 rounded-full text-sm font-bold bg-brand-500 text-white shadow-soft transition-colors disabled:opacity-50 active:scale-[0.97]'
+                      : 'px-3.5 py-1.5 rounded-full text-sm font-bold text-stone-600 bg-stone-100 hover:bg-brand-100 transition-colors disabled:opacity-50 active:scale-[0.97]'
                   }
                 >
                   {s}
@@ -227,7 +227,7 @@ function VideoAnalysis() {
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="mt-5 bg-brand-500 text-white font-bold px-5 py-2.5 rounded-full shadow-soft hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-5 bg-brand-500 text-white font-bold px-5 py-2.5 rounded-full shadow-soft hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
           >
             {submitting ? '提交中…' : tab === 'file' ? '开始分析' : '解析链接'}
           </button>
@@ -267,7 +267,7 @@ function VideoAnalysis() {
         </div>
 
         {/* 历史列表 */}
-        <h2 className="text-xl font-black text-stone-900 mt-10 mb-4">历史分析</h2>
+        <h2 className="text-xl font-bold text-stone-900 mt-10 mb-4">历史分析</h2>
         {loading && <p className="text-stone-500">加载中…</p>}
         {!loading && list.length === 0 && <p className="text-stone-500">还没有分析记录，上传一段课堂视频试试吧。</p>}
 
@@ -279,18 +279,18 @@ function VideoAnalysis() {
                 <Link
                   key={item.id}
                   to={`/video/${item.id}`}
-                  className="relative block bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:shadow-soft hover:-translate-y-1 transition-all"
+                  className="relative block bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:shadow-float hover:-translate-y-0.5 transition-all duration-300 ease-bounce-soft"
                 >
                   <button
                     type="button"
                     onClick={(event) => handleDelete(event, item.id)}
                     disabled={deletingId === item.id}
-                    className="absolute top-3 right-3 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-full px-2.5 py-1 transition-colors disabled:opacity-50"
+                    className="absolute top-3 right-3 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-full px-2.5 py-1 transition-colors disabled:opacity-50 active:scale-[0.97]"
                   >
                     {deletingId === item.id ? '删除中…' : '删除'}
                   </button>
                   <div className="text-3xl mb-3">{item.source.type === 'upload' ? '📁' : '🔗'}</div>
-                  <h3 className="text-base font-black text-stone-900 truncate pr-12">{formatDateTimeName(item.createdAt)}</h3>
+                  <h3 className="text-base font-bold text-stone-900 truncate pr-12">{formatDateTimeName(item.createdAt)}</h3>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${badge.className}`}>
                       {badge.text}

@@ -13,7 +13,7 @@ function PhaseTimeline({ phases }: { phases: Phase[] }) {
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-base font-black text-white shadow-md">
                 {idx + 1}
               </span>
-              <p className="mt-3 text-lg font-black text-stone-900">{phase.name}</p>
+              <p className="mt-3 text-lg font-extrabold text-stone-900">{phase.name}</p>
               <p className="mt-1 text-sm text-stone-600">{phase.description}</p>
             </div>
             {idx < phases.length - 1 && (

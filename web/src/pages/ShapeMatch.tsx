@@ -122,7 +122,7 @@ function ShapeMatch() {
           <button
             type="button"
             onClick={restart}
-            className="text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-full px-3 py-1 transition-colors"
+            className="text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 active:scale-[0.97] rounded-full px-3 py-1 transition-colors"
           >
             重新开始
           </button>
@@ -138,12 +138,12 @@ function ShapeMatch() {
           // 本关结算
           <div className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 p-8 text-center">
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-black text-stone-900 mb-2">第 {level} 关完成！</h2>
+            <h2 className="text-2xl font-extrabold text-stone-900 mb-2">第 {level} 关完成！</h2>
             <p className="text-stone-600 mb-6">当前累计得分 {score} 分</p>
             <button
               type="button"
               onClick={nextLevel}
-              className="bg-brand-500 text-white font-bold px-6 py-3 rounded-full shadow-soft hover:bg-brand-600 transition-colors"
+              className="bg-brand-500 text-white font-bold px-6 py-3 rounded-full shadow-soft hover:bg-brand-600 active:scale-[0.98] transition-colors"
             >
               进入第 {level + 1} 关 →
             </button>
@@ -206,10 +206,10 @@ function ShapeMatch() {
                     onPointerMove={handlePointerMove}
                     onPointerUp={handlePointerUp}
                     className={
-                      'flex items-center justify-center rounded-2xl p-1 select-none transition-transform ' +
+                      'flex items-center justify-center rounded-2xl p-1 select-none transition-all duration-300 ease-bounce-soft ' +
                       (done
                         ? 'opacity-30'
-                        : 'cursor-grab active:cursor-grabbing hover:-translate-y-0.5') +
+                        : 'cursor-grab active:cursor-grabbing active:scale-[0.97] hover:-translate-y-0.5 hover:shadow-float') +
                       (wrong ? ' animate-bounce' : '') +
                       (dragging ? ' opacity-30' : '')
                     }
@@ -247,7 +247,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 py-3 text-center">
       <div className="text-xs text-stone-400 font-bold">{label}</div>
-      <div className="text-lg font-black text-stone-900">{value}</div>
+      <div className="text-lg font-bold text-stone-900">{value}</div>
     </div>
   )
 }

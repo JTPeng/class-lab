@@ -38,7 +38,7 @@ function AuthArea() {
       <span className="font-bold text-stone-700">👤 {user.displayName}</span>
       <button
         onClick={logout}
-        className="px-3 py-1 rounded-full font-bold text-stone-500 hover:bg-brand-100 transition-colors"
+        className="px-3 py-1 rounded-full font-bold text-stone-500 hover:bg-brand-100 active:scale-[0.97] transition-all duration-200"
       >
         退出
       </button>
@@ -61,8 +61,8 @@ function BottomNav({ pathname }: { pathname: string }) {
             to={tab.to}
             className={
               active
-                ? 'flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-brand-600'
-                : 'flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-stone-500'
+                ? 'flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-brand-600 transition-colors duration-200'
+                : 'flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-stone-500 active:text-brand-500 transition-colors duration-200'
             }
           >
             <tab.icon className="w-6 h-6" />
@@ -85,7 +85,7 @@ function AppShell() {
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-50 bg-cream/95 backdrop-blur border-b border-brand-100 shadow-card">
         <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 h-14 flex items-center gap-6">
-          <Link to="/" className="flex items-center gap-1.5 text-lg font-black text-stone-900 shrink-0">
+          <Link to="/" className="flex items-center gap-1.5 text-lg font-extrabold text-stone-900 shrink-0">
             <img src="/favicon.svg" alt="" className="w-6 h-6" />
             士多啤梨
           </Link>
@@ -98,8 +98,8 @@ function AppShell() {
                   to={tab.to}
                   className={
                     active
-                      ? 'px-4 py-1.5 rounded-full text-sm font-bold bg-brand-500 text-white shadow-soft transition-colors'
-                      : 'px-4 py-1.5 rounded-full text-sm font-bold text-stone-600 hover:bg-brand-100 transition-colors'
+                      ? 'px-4 py-1.5 rounded-full text-sm font-bold bg-brand-500 text-white shadow-soft transition-all duration-200'
+                      : 'px-4 py-1.5 rounded-full text-sm font-bold text-stone-600 hover:bg-brand-100 active:scale-[0.97] transition-all duration-200'
                   }
                 >
                   {tab.label}

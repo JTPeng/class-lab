@@ -67,7 +67,7 @@ function InstructionResponseMeter({ total, responded }: { total: number; respond
 function VideoStatsCharts({ stats }: { stats: VideoReportStats }) {
   return (
     <div className="bg-white p-6 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
-      <h2 className="text-lg font-black text-stone-900 mb-1">行为统计</h2>
+      <h2 className="text-lg font-extrabold text-stone-900 mb-1">行为统计</h2>
       <p className="text-xs text-stone-400 mb-4">按各时间窗的可见画面确定性统计，非模型主观评价</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>

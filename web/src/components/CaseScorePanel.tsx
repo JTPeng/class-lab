@@ -96,7 +96,7 @@ function CaseScorePanel({
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !caseId}
-            className="w-full rounded-full bg-brand-500 px-4 py-2 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 disabled:opacity-50"
+            className="w-full rounded-full bg-brand-500 px-4 py-2 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 active:scale-[0.98] disabled:opacity-50"
           >
             {submitting ? '提交中...' : '提交打分'}
           </button>

@@ -117,7 +117,7 @@ function AnimalSound() {
           <button
             type="button"
             onClick={restart}
-            className="text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-full px-3 py-1 transition-colors"
+            className="text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 active:scale-[0.97] rounded-full px-3 py-1 transition-colors"
           >
             重新开始
           </button>
@@ -133,12 +133,12 @@ function AnimalSound() {
           // 本关结算
           <div className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 p-8 text-center">
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-black text-stone-900 mb-2">第 {level} 关完成！</h2>
+            <h2 className="text-2xl font-extrabold text-stone-900 mb-2">第 {level} 关完成！</h2>
             <p className="text-stone-600 mb-6">当前累计得分 {score} 分</p>
             <button
               type="button"
               onClick={nextLevel}
-              className="bg-brand-500 text-white font-bold px-6 py-3 rounded-full shadow-soft hover:bg-brand-600 transition-colors"
+              className="bg-brand-500 text-white font-bold px-6 py-3 rounded-full shadow-soft hover:bg-brand-600 active:scale-[0.98] transition-colors"
             >
               进入第 {level + 1} 关 →
             </button>
@@ -167,7 +167,7 @@ function AnimalSound() {
                 type="button"
                 onClick={() => speak(question.answer)}
                 disabled={speaking}
-                className="inline-flex items-center gap-2 bg-brand-100 hover:bg-brand-200 text-brand-700 font-black text-lg px-8 py-4 rounded-full transition-colors disabled:opacity-60"
+                className="inline-flex items-center gap-2 bg-brand-100 hover:bg-brand-200 text-brand-700 font-black text-lg px-8 py-4 rounded-full active:scale-[0.98] transition-colors disabled:opacity-60"
               >
                 <span className="text-2xl">🔊</span>
                 {speaking ? '播放中…' : '再听一次'}
@@ -181,9 +181,9 @@ function AnimalSound() {
                 const isPicked = picked?.name === animal.name
                 const isAnswer = animal.name === question.answer.name
                 let cls =
-                  'flex flex-col items-center gap-1 rounded-2xl border-2 p-4 transition-all '
+                  'flex flex-col items-center gap-1 rounded-2xl border-2 p-4 transition-all duration-300 ease-bounce-soft active:scale-[0.97] '
                 if (!picked) {
-                  cls += 'border-brand-100 bg-cream hover:border-brand-400 hover:-translate-y-0.5'
+                  cls += 'border-brand-100 bg-cream hover:border-brand-400 hover:-translate-y-0.5 hover:shadow-float'
                 } else if (isAnswer) {
                   cls += 'border-green-400 bg-green-50'
                 } else if (isPicked) {
@@ -252,7 +252,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 py-3 text-center">
       <div className="text-xs text-stone-400 font-bold">{label}</div>
-      <div className="text-lg font-black text-stone-900">{value}</div>
+      <div className="text-lg font-bold text-stone-900">{value}</div>
     </div>
   )
 }

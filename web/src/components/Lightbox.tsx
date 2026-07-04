@@ -25,7 +25,7 @@ function Lightbox({ url, alt, onClose }: LightboxProps) {
         type="button"
         onClick={onClose}
         aria-label="关闭"
-        className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-2xl font-bold text-white transition hover:bg-white/20"
+        className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-2xl font-bold text-white transition hover:bg-white/20 active:scale-[0.97]"
       >
         ×
       </button>

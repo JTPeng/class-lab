@@ -76,14 +76,14 @@ function Cases() {
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
       <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-8">
-          <h1 className="flex items-center gap-2 text-2xl sm:text-3xl font-black text-stone-900">
+          <h1 className="flex items-center gap-2 text-2xl sm:text-3xl font-extrabold text-stone-900">
             <img src="/favicon.svg" alt="" className="w-8 h-8" />
             士多啤梨 <span className="text-brand-500">DTT</span> 个案
           </h1>
           <button
             type="button"
             onClick={() => setShowForm((v) => !v)}
-            className="self-start bg-brand-500 text-white font-bold px-5 py-2.5 rounded-full shadow-soft hover:bg-brand-600 transition-colors"
+            className="self-start bg-brand-500 text-white font-bold px-5 py-2.5 rounded-full shadow-soft hover:bg-brand-600 transition-colors active:scale-[0.98]"
           >
             ＋ 新建个案
           </button>
@@ -122,7 +122,7 @@ function Cases() {
             <button
               type="submit"
               disabled={submitting}
-              className="bg-brand-500 text-white font-medium px-5 py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50"
+              className="bg-brand-500 text-white font-medium px-5 py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50 active:scale-[0.98]"
             >
               {submitting ? '创建中...' : '创建'}
             </button>
@@ -140,17 +140,17 @@ function Cases() {
               <Link
                 key={c.id}
                 to={`/cases/${c.id}`}
-                className="relative block bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:shadow-soft hover:-translate-y-1 transition-all"
+                className="relative block bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:-translate-y-0.5 hover:shadow-float transition-all duration-300 ease-bounce-soft"
               >
                 <button
                   type="button"
                   onClick={(event) => handleDelete(event, c.id)}
                   disabled={deletingId === c.id}
-                  className="absolute top-3 right-3 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-full px-2.5 py-1 transition-colors disabled:opacity-50"
+                  className="absolute top-3 right-3 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-full px-2.5 py-1 transition-colors disabled:opacity-50 active:scale-[0.97]"
                 >
                   {deletingId === c.id ? '删除中...' : '删除'}
                 </button>
-                <h2 className="text-lg font-black text-stone-900 truncate pr-14">{c.name}</h2>
+                <h2 className="text-lg font-bold text-stone-900 truncate pr-14">{c.name}</h2>
                 {c.baseline && <p className="text-sm text-stone-600 mt-2 line-clamp-2">{c.baseline}</p>}
                 <p className="text-xs text-stone-400 mt-3">{formatDate(c.createdAt)}</p>
               </Link>

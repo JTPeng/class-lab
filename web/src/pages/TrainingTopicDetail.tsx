@@ -24,7 +24,7 @@ export default function TrainingTopicDetail() {
       <Link to="/training" className="text-sm text-stone-500 hover:underline">
         ← 返回列表
       </Link>
-      <h1 className="text-xl font-black text-stone-900 mt-2 mb-3">{topic.title}</h1>
+      <h1 className="text-xl font-extrabold text-stone-900 mt-2 mb-3">{topic.title}</h1>
       {topic.structuredContent && (
         <>
           <p className="bg-brand-50 rounded-xl p-3 text-sm text-stone-700 mb-4">{topic.structuredContent.summary}</p>
@@ -40,7 +40,7 @@ export default function TrainingTopicDetail() {
       )}
       <Link
         to={`/training/${topic.id}/quiz`}
-        className="inline-block mt-6 px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft"
+        className="inline-block mt-6 px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft active:scale-[0.98] transition-transform"
       >
         开始测评
       </Link>

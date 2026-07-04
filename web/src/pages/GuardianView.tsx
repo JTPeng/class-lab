@@ -91,8 +91,8 @@ function SessionCard({
                   disabled={submitting}
                   className={
                     difficulty === opt.value
-                      ? 'px-4 py-1.5 rounded-full text-sm font-bold bg-brand-500 text-white'
-                      : 'px-4 py-1.5 rounded-full text-sm font-bold bg-brand-100 text-brand-700 hover:bg-brand-200'
+                      ? 'px-4 py-1.5 rounded-full text-sm font-bold bg-brand-500 text-white active:scale-[0.97]'
+                      : 'px-4 py-1.5 rounded-full text-sm font-bold bg-brand-100 text-brand-700 hover:bg-brand-200 active:scale-[0.97]'
                   }
                 >
                   {opt.label}
@@ -126,7 +126,7 @@ function SessionCard({
           <button
             type="submit"
             disabled={submitting}
-            className="bg-brand-500 text-white font-medium px-5 py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50"
+            className="bg-brand-500 text-white font-medium px-5 py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50 active:scale-[0.98]"
           >
             {submitting ? '提交中...' : '提交反馈'}
           </button>
@@ -175,11 +175,11 @@ function GuardianView() {
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-6">
-          <h1 className="text-2xl font-black text-stone-900">{caseInfo.name}</h1>
+          <h1 className="text-2xl font-extrabold text-stone-900">{caseInfo.name}</h1>
           {caseInfo.baseline && <p className="text-stone-600 mt-2">{caseInfo.baseline}</p>}
         </div>
 
-        <h2 className="text-xl font-black text-stone-900">训练记录</h2>
+        <h2 className="text-xl font-bold text-stone-900">训练记录</h2>
 
         {sessions.length === 0 && <p className="text-stone-500">还没有训练记录</p>}
 
