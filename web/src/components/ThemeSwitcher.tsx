@@ -80,6 +80,7 @@ function ThemeSwitcher() {
           onClick={() => {
             applyTheme(theme.key)
             setActive(theme.key)
+            setOpen(false)
           }}
           className={
             active === theme.key
