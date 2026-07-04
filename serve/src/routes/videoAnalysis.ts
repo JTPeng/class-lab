@@ -10,6 +10,7 @@ import {
   deleteVideoAnalysis,
   getVideoAnalysis,
   insertVideoAnalysis,
+  linkVideoAnalysisCase,
   listVideoAnalyses,
 } from '../db/videoAnalyses.js';
 import {
@@ -103,4 +104,18 @@ export function registerVideoAnalysisRoutes(app: FastifyInstance, deps: VideoAna
     if (!deleted) return reply.status(404).send({ error: '未找到该分析记录。' });
     return reply.status(204).send();
   });
+
+  // 关联到个案：五维评级本身即打分，无需额外手动打分。
+  app.put<{ Params: { userId: string; id: string }; Body: { caseId?: string } }>(
+    '/users/:userId/video/analyses/:id/case',
+    async (request, reply) => {
+      const caseId = request.body?.caseId;
+      if (!caseId || !String(caseId).trim()) {
+        return reply.status(400).send({ error: '请选择要关联的个案' });
+      }
+      const updated = await linkVideoAnalysisCase(db, request.params.id, request.params.userId, String(caseId));
+      if (!updated) return reply.status(404).send({ error: '未找到该分析记录。' });
+      return reply.status(204).send();
+    },
+  );
 }

@@ -105,6 +105,10 @@ function listCaseSessions(
   return request(`/cases/${caseId}/sessions`);
 }
 
+function generateCaseSummary(caseId: string): Promise<{ summary: string }> {
+  return request(`/cases/${caseId}/summary/generate`, { method: 'POST' });
+}
+
 function getShareView(
   shareToken: string,
 ): Promise<{ case: Pick<CaseRecord, 'name' | 'baseline' | 'targets'>; sessions: CaseSessionRecord[] }> {
@@ -278,6 +282,14 @@ function deleteVideoAnalysis(userId: string, id: string): Promise<void> {
   return request<void>(`/users/${userId}/video/analyses/${id}`, { method: 'DELETE' });
 }
 
+function linkVideoAnalysisCase(userId: string, id: string, caseId: string): Promise<void> {
+  return request<void>(`/users/${userId}/video/analyses/${id}/case`, { method: 'PUT', body: { caseId } });
+}
+
+function listCaseVideoAnalyses(caseId: string): Promise<VideoAnalysis[]> {
+  return request<VideoAnalysis[]>(`/cases/${caseId}/video-analyses`);
+}
+
 // 后端错误响应体形如 {"error":"..."}，request() 会把整段响应体作为 Error.message 抛出。
 // 该工具从中提取出 error 文案，取不到时回退到 fallback。
 export function apiErrorMessage(err: unknown, fallback: string): string {
@@ -328,6 +340,7 @@ export const api = {
   deleteCaseRemote,
   createCaseSession,
   listCaseSessions,
+  generateCaseSummary,
   getShareView,
   submitGuardianFeedback,
   linkPictureBookScore,
@@ -350,6 +363,8 @@ export const api = {
   listVideoAnalyses,
   getVideoAnalysis,
   deleteVideoAnalysis,
+  linkVideoAnalysisCase,
+  listCaseVideoAnalyses,
   listTrainingTopics,
   getTrainingTopic,
   getTrainingQuestions,

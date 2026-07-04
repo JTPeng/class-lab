@@ -30,17 +30,24 @@ export async function createVideoAnalysesTable(db: DbClient): Promise<void> {
       data ${dataType}
     )`,
   );
-  if (db.dialect === 'mysql') {
-    const row = await db.get<{ count: number }>(
-      `SELECT COUNT(*) AS count FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'video_analyses' AND column_name = 'userId'`,
-    );
-    if (!row || row.count === 0) {
-      await db.exec(`ALTER TABLE video_analyses ADD COLUMN userId VARCHAR(191)`);
-    }
-  } else {
-    const columns = await db.all<{ name: string }>(`PRAGMA table_info(video_analyses)`);
-    if (!columns.some((c) => c.name === 'userId')) {
-      await db.exec(`ALTER TABLE video_analyses ADD COLUMN userId TEXT`);
+  const columns: Array<[string, string]> = [
+    ['userId', db.dialect === 'mysql' ? 'VARCHAR(191)' : 'TEXT'],
+    ['caseId', db.dialect === 'mysql' ? 'VARCHAR(191)' : 'TEXT'],
+  ];
+  for (const [name, colType] of columns) {
+    if (db.dialect === 'mysql') {
+      const row = await db.get<{ count: number }>(
+        `SELECT COUNT(*) AS count FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'video_analyses' AND column_name = ?`,
+        [name],
+      );
+      if (!row || row.count === 0) {
+        await db.exec(`ALTER TABLE video_analyses ADD COLUMN ${name} ${colType}`);
+      }
+    } else {
+      const existing = await db.all<{ name: string }>(`PRAGMA table_info(video_analyses)`);
+      if (!existing.some((c) => c.name === name)) {
+        await db.exec(`ALTER TABLE video_analyses ADD COLUMN ${name} ${colType}`);
+      }
     }
   }
 }
@@ -93,4 +100,31 @@ export async function deleteVideoAnalysis(db: DbClient, id: string, userId?: str
     ? await db.run(`DELETE FROM video_analyses WHERE id = ? AND userId = ?`, [id, userId])
     : await db.run(`DELETE FROM video_analyses WHERE id = ?`, [id]);
   return result.changes > 0;
+}
+
+// 把一条视频分析关联到某个个案：caseId 同时写入独立列（供按 case 查询）和 data 整对象（供详情读出）。
+export async function linkVideoAnalysisCase(
+  db: DbClient,
+  id: string,
+  userId: string,
+  caseId: string,
+): Promise<boolean> {
+  const analysis = await getVideoAnalysis(db, id, userId);
+  if (!analysis) return false;
+  const updated: VideoAnalysis = { ...analysis, caseId };
+  const result = await db.run(`UPDATE video_analyses SET data = ?, caseId = ? WHERE id = ? AND userId = ?`, [
+    JSON.stringify(updated),
+    caseId,
+    id,
+    userId,
+  ]);
+  return result.changes > 0;
+}
+
+export async function listVideoAnalysesByCase(db: DbClient, caseId: string): Promise<VideoAnalysis[]> {
+  const rows = await db.all<{ data: string }>(
+    `SELECT data FROM video_analyses WHERE caseId = ? ORDER BY createdAt DESC`,
+    [caseId],
+  );
+  return rows.map((row) => JSON.parse(row.data) as VideoAnalysis);
 }

@@ -16,12 +16,17 @@ import {
   type CaseSessionRecord,
 } from '../db/caseSessions.js';
 import { deleteLesson, getLesson, insertLesson, listLessons } from '../db/index.js';
+import { listPictureBooksByCase } from '../db/pictureBooks.js';
+import { listGameSessionsByCase } from '../db/gameSessions.js';
+import { listVideoAnalysesByCase } from '../db/videoAnalyses.js';
 import { LessonInputSchema } from '../schema/lesson.js';
 import type { generateLesson as defaultGenerateLesson } from '../services/generateLesson.js';
+import type { generateCaseSummary as defaultGenerateCaseSummary } from '../services/generateCaseSummary.js';
 
 export interface CaseRoutesDeps {
   db: DbClient;
   generateLesson: typeof defaultGenerateLesson;
+  generateCaseSummary: typeof defaultGenerateCaseSummary;
 }
 
 const CaseBodySchema = z.object({
@@ -66,7 +71,7 @@ function buildInsight(sessions: CaseSessionRecord[]): string | null {
 }
 
 export async function registerCaseRoutes(app: FastifyInstance, deps: CaseRoutesDeps) {
-  const { db, generateLesson } = deps;
+  const { db, generateLesson, generateCaseSummary } = deps;
 
   // ===== 个案建档 CRUD =====
 
@@ -164,6 +169,34 @@ export async function registerCaseRoutes(app: FastifyInstance, deps: CaseRoutesD
   app.get<{ Params: { caseId: string } }>('/cases/:caseId/sessions', async (request, reply) => {
     const sessions = await listCaseSessions(db, request.params.caseId);
     return reply.status(200).send({ sessions, insight: buildInsight(sessions) });
+  });
+
+  // ===== 视频分析：按 caseId 归属 =====
+
+  app.get<{ Params: { caseId: string } }>('/cases/:caseId/video-analyses', async (request, reply) => {
+    return reply.status(200).send(await listVideoAnalysesByCase(db, request.params.caseId));
+  });
+
+  // ===== AI 总结：汇总执行记录/绘本打卡/游戏记录/视频分析四类活动 =====
+
+  app.post<{ Params: { caseId: string } }>('/cases/:caseId/summary/generate', async (request, reply) => {
+    const record = await getCase(db, request.params.caseId);
+    if (!record) return reply.status(404).send({ error: 'Case not found' });
+
+    const [sessions, pictureBooks, gameSessions, videoAnalyses] = await Promise.all([
+      listCaseSessions(db, request.params.caseId),
+      listPictureBooksByCase(db, request.params.caseId),
+      listGameSessionsByCase(db, request.params.caseId),
+      listVideoAnalysesByCase(db, request.params.caseId),
+    ]);
+
+    try {
+      const summary = await generateCaseSummary({ record, sessions, pictureBooks, gameSessions, videoAnalyses });
+      return reply.status(200).send({ summary });
+    } catch (err) {
+      app.log.error(err);
+      return reply.status(502).send({ error: '总结生成失败，请稍后重试' });
+    }
   });
 
   // ===== 家长/督导免登录分享视图 =====

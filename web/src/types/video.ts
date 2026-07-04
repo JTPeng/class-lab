@@ -39,6 +39,7 @@ export interface VideoReport {
 
 export interface VideoAnalysis {
   id: string
+  caseId?: string | null // 关联到某个个案（可选，事后由老师手动关联）
   source: { type: 'upload' | 'url'; filename?: string; url?: string }
   style?: ReportStyle // 报告生成风格（缺省视为专业督导版）
   durationSec: number

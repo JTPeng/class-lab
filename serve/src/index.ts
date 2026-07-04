@@ -9,6 +9,7 @@ import type { DbClient } from './db/client.js';
 import { createDbClient } from './db/client.js';
 import { initSchema } from './db/index.js';
 import { generateLesson as defaultGenerateLesson } from './services/generateLesson.js';
+import { generateCaseSummary as defaultGenerateCaseSummary } from './services/generateCaseSummary.js';
 import { registerCaseRoutes } from './routes/cases.js';
 import { registerImageRoutes, uploadsDir } from './routes/images.js';
 import { registerPicturebookRoutes, sharedDir } from './routes/picturebook.js';
@@ -27,6 +28,7 @@ import type { generateImageUrl as defaultGenerateImageUrl } from './ai/imageClie
 export interface BuildAppDeps {
   db?: DbClient;
   generateLesson?: typeof defaultGenerateLesson;
+  generateCaseSummary?: typeof defaultGenerateCaseSummary;
   generateImageUrl?: typeof defaultGenerateImageUrl;
   fetchImpl?: typeof fetch;
 }
@@ -36,6 +38,7 @@ export async function buildApp(deps: BuildAppDeps = {}): Promise<FastifyInstance
   const db = deps.db ?? (await createDbClient());
   if (!deps.db) await initSchema(db);
   const generateLesson = deps.generateLesson ?? defaultGenerateLesson;
+  const generateCaseSummary = deps.generateCaseSummary ?? defaultGenerateCaseSummary;
 
   app.register(cors, { origin: true });
   // 视频分析上传：不限制单文件大小（Infinity 关闭上限，否则默认约 1MB）。注册在根实例，子路由可用 request.file()。
@@ -57,7 +60,7 @@ export async function buildApp(deps: BuildAppDeps = {}): Promise<FastifyInstance
 
   app.register(
     async (instance) => {
-      await registerCaseRoutes(instance, { db, generateLesson });
+      await registerCaseRoutes(instance, { db, generateLesson, generateCaseSummary });
       await registerImageRoutes(instance, {
         db,
         generateImageUrl: deps.generateImageUrl,

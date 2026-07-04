@@ -7,6 +7,7 @@ import { formatClock, phaseLabel, progressPercent } from '../lib/video'
 import { downloadReportHtml, downloadReportPdf } from '../lib/videoReportExport'
 import VideoStatsCharts from '../components/VideoStatsCharts'
 import DimensionOverview from '../components/DimensionOverview'
+import CaseLinkPanel from '../components/CaseLinkPanel'
 
 const RATING_BADGE: Record<Rating, string> = {
   好: 'bg-emerald-100 text-emerald-700',
@@ -158,7 +159,7 @@ function VideoAnalysisDetail() {
               <button
                 type="button"
                 onClick={handleDownloadHtml}
-                className="rounded-full bg-white ring-1 ring-brand-200 px-4 py-1.5 text-sm font-bold text-brand-700 shadow-card transition hover:bg-brand-50"
+                className="rounded-full bg-white ring-1 ring-brand-200 px-4 py-1.5 text-sm font-bold text-brand-700 shadow-card transition hover:bg-brand-50 active:scale-[0.97]"
               >
                 下载 HTML
               </button>
@@ -166,7 +167,7 @@ function VideoAnalysisDetail() {
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={exportingPdf}
-                className="rounded-full bg-white ring-1 ring-brand-200 px-4 py-1.5 text-sm font-bold text-brand-700 shadow-card transition hover:bg-brand-50 disabled:opacity-50"
+                className="rounded-full bg-white ring-1 ring-brand-200 px-4 py-1.5 text-sm font-bold text-brand-700 shadow-card transition hover:bg-brand-50 disabled:opacity-50 active:scale-[0.97]"
               >
                 {exportingPdf ? '生成中…' : '下载 PDF'}
               </button>
@@ -175,7 +176,7 @@ function VideoAnalysisDetail() {
             <div ref={reportRef} className="space-y-6">
               {/* 摘要 */}
               <div className="bg-white p-6 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
-                <h1 className="text-2xl font-black text-stone-900 mb-1">分析报告</h1>
+                <h1 className="text-2xl font-extrabold text-stone-900 mb-1">分析报告</h1>
                 <p className="text-xs text-stone-400 mb-4">
                   时长 {formatClock(analysis.durationSec)}
                   {analysis.style && <> ・ 风格：{analysis.style}</>}
@@ -198,7 +199,7 @@ function VideoAnalysisDetail() {
               {/* 给老师/督导的话 */}
               {report.encouragement && (
                 <div className="bg-amber-50 p-6 rounded-2xl border-t-4 border-amber-400 shadow-card ring-1 ring-amber-100">
-                  <h2 className="text-base font-black text-amber-800 mb-2">💛 给老师的话</h2>
+                  <h2 className="text-base font-bold text-amber-800 mb-2">💛 给老师的话</h2>
                   <p className="text-stone-700 leading-relaxed">{report.encouragement}</p>
                 </div>
               )}
@@ -206,7 +207,7 @@ function VideoAnalysisDetail() {
               {/* 需人工确认 */}
               {report.needsReview && report.needsReview.length > 0 && (
                 <div className="bg-white p-6 rounded-2xl border-t-4 border-amber-400 shadow-card ring-1 ring-amber-100">
-                  <h2 className="text-base font-black text-stone-900 mb-1">⚠️ 需人工确认</h2>
+                  <h2 className="text-base font-bold text-stone-900 mb-1">⚠️ 需人工确认</h2>
                   <p className="text-xs text-stone-400 mb-3">本版基于画面视觉分析，以下事项建议结合原视频音频复核</p>
                   <ul className="space-y-1.5 list-disc list-inside">
                     {report.needsReview.map((item, i) => (
@@ -220,7 +221,7 @@ function VideoAnalysisDetail() {
 
               {/* 五维评价总览 */}
               <div className="bg-white p-6 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
-                <h2 className="text-lg font-black text-stone-900 mb-4">五维评价总览</h2>
+                <h2 className="text-lg font-bold text-stone-900 mb-4">五维评价总览</h2>
                 <DimensionOverview dimensions={report.dimensions} />
               </div>
 
@@ -234,7 +235,7 @@ function VideoAnalysisDetail() {
                       className={`bg-white p-5 rounded-2xl border-t-4 shadow-card ring-1 ring-brand-100 ${RATING_BORDER[dim.rating]}`}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-base font-black text-stone-900">{label}</h3>
+                        <h3 className="text-base font-bold text-stone-900">{label}</h3>
                         <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${RATING_BADGE[dim.rating]}`}>
                           {dim.rating}
                         </span>
@@ -251,7 +252,7 @@ function VideoAnalysisDetail() {
               {/* 时间轴 */}
               {report.timeline.length > 0 && (
                 <div className="bg-white p-6 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
-                  <h2 className="text-lg font-black text-stone-900 mb-4">时间轴证据</h2>
+                  <h2 className="text-lg font-bold text-stone-900 mb-4">时间轴证据</h2>
                   <ul className="space-y-4">
                     {report.timeline.map((ev, i) => (
                       <li key={i} className="flex gap-3">
@@ -259,7 +260,7 @@ function VideoAnalysisDetail() {
                           <button
                             type="button"
                             onClick={() => setActiveClip({ url: ev.clipUrl!, time: formatClock(ev.atSec), text: ev.text })}
-                            className="group relative shrink-0 w-32 h-[72px] rounded-lg ring-1 ring-brand-100 bg-stone-900 overflow-hidden"
+                            className="group relative shrink-0 w-32 h-[72px] rounded-lg ring-1 ring-brand-100 bg-stone-900 overflow-hidden active:scale-[0.97] transition-transform"
                           >
                             <video src={ev.clipUrl} muted playsInline preload="metadata" className="w-full h-full object-cover" />
                             <span className="absolute inset-0 flex items-center justify-center bg-black/20 transition group-hover:bg-black/40">
@@ -284,11 +285,11 @@ function VideoAnalysisDetail() {
               {/* 报告草稿 */}
               <div className="bg-white p-6 rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-black text-stone-900">报告草稿</h2>
+                  <h2 className="text-lg font-bold text-stone-900">报告草稿</h2>
                   <button
                     type="button"
                     onClick={() => handleCopy(report.draft)}
-                    className="rounded-full bg-brand-500 px-4 py-1.5 text-sm font-bold text-white shadow-soft transition hover:bg-brand-600"
+                    className="rounded-full bg-brand-500 px-4 py-1.5 text-sm font-bold text-white shadow-soft transition hover:bg-brand-600 active:scale-[0.97]"
                   >
                     {copied ? '已复制 ✓' : '复制'}
                   </button>
@@ -296,6 +297,13 @@ function VideoAnalysisDetail() {
                 <pre className="whitespace-pre-wrap font-sans text-sm text-stone-700 leading-relaxed">{report.draft}</pre>
               </div>
             </div>
+
+            {user && (
+              <CaseLinkPanel
+                userId={user.id}
+                onSubmit={(caseId) => api.linkVideoAnalysisCase(user.id, analysis.id, caseId)}
+              />
+            )}
           </>
         )}
       </div>
@@ -310,7 +318,7 @@ function VideoAnalysisDetail() {
               <span className="text-sm font-bold">
                 {activeClip.time} · {activeClip.text}
               </span>
-              <button type="button" onClick={() => setActiveClip(null)} className="text-sm font-bold hover:text-brand-200">
+              <button type="button" onClick={() => setActiveClip(null)} className="text-sm font-bold hover:text-brand-200 active:scale-[0.97] transition-transform">
                 关闭 ✕
               </button>
             </div>

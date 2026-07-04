@@ -5,6 +5,13 @@ import { useAuth } from '../auth/AuthContext'
 import { QrImage } from '../components/PictureCard'
 import type { CaseRecord, CaseSessionRecord, GameSessionRecord } from '../types/case'
 import type { LessonListItem } from '../types/lesson'
+import { DIMENSION_META, type Rating, type VideoAnalysis } from '../types/video'
+
+const RATING_BADGE: Record<Rating, string> = {
+  好: 'bg-emerald-100 text-emerald-700',
+  一般: 'bg-amber-100 text-amber-700',
+  待加强: 'bg-rose-100 text-rose-700',
+}
 
 function formatDate(iso: string): string {
   const date = new Date(iso)
@@ -75,7 +82,7 @@ function ShareModal({ shareToken, onClose }: { shareToken: string; onClose: () =
         className="flex flex-col items-center gap-4 bg-white rounded-2xl border-t-4 border-brand-400 shadow-soft p-6 text-center"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-black text-stone-900">家长/督导分享</h3>
+        <h3 className="text-lg font-extrabold text-stone-900">家长/督导分享</h3>
         {shareUrl ? (
           <>
             <QrImage text={shareUrl} size={200} />
@@ -85,6 +92,44 @@ function ShareModal({ shareToken, onClose }: { shareToken: string; onClose: () =
           <p className="text-sm text-stone-500">{shareUrl === undefined ? '获取地址中…' : '未检测到局域网地址'}</p>
         )}
         <button onClick={onClose} className="text-sm font-bold text-brand-600 hover:underline">
+          关闭
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// AI 总结弹层：点击按钮后调用后端汇总执行记录/绘本打卡/游戏记录生成的一段文字，样式与 ShareModal 一致。
+function SummaryModal({
+  loading,
+  error,
+  summary,
+  onClose,
+}: {
+  loading: boolean
+  error: string | null
+  summary: string | null
+  onClose: () => void
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/40 backdrop-blur-sm px-4"
+      onClick={onClose}
+    >
+      <div
+        className="flex flex-col gap-4 bg-white rounded-2xl border-t-4 border-brand-400 shadow-soft p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-extrabold text-stone-900">AI 总结</h3>
+        {loading && <p className="text-sm text-stone-500">生成中…</p>}
+        {!loading && error && <p className="text-sm text-rose-600">{error}</p>}
+        {!loading && !error && summary && (
+          <p className="text-sm text-stone-700 whitespace-pre-wrap">{summary}</p>
+        )}
+        <button
+          onClick={onClose}
+          className="self-end text-sm font-bold text-brand-600 hover:underline"
+        >
           关闭
         </button>
       </div>
@@ -118,10 +163,15 @@ function CaseDetail() {
   const [insight, setInsight] = useState<string | null>(null)
   const [pictureBooks, setPictureBooks] = useState<PictureBookRecordDto[]>([])
   const [gameSessions, setGameSessions] = useState<GameSessionRecord[]>([])
+  const [videoAnalyses, setVideoAnalyses] = useState<VideoAnalysis[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deletingLessonId, setDeletingLessonId] = useState<string | null>(null)
   const [showShare, setShowShare] = useState(false)
+  const [showSummary, setShowSummary] = useState(false)
+  const [summaryLoading, setSummaryLoading] = useState(false)
+  const [summaryText, setSummaryText] = useState<string | null>(null)
+  const [summaryError, setSummaryError] = useState<string | null>(null)
 
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
@@ -139,8 +189,9 @@ function CaseDetail() {
       api.listCaseSessions(caseId),
       api.listCasePictureBooks(caseId),
       api.listCaseGameSessions(caseId),
+      api.listCaseVideoAnalyses(caseId),
     ])
-      .then(([caseRecord, lessonList, sessionResult, pictureBookList, gameSessionList]) => {
+      .then(([caseRecord, lessonList, sessionResult, pictureBookList, gameSessionList, videoAnalysisList]) => {
         setRecord(caseRecord)
         setName(caseRecord.name)
         setBaseline(caseRecord.baseline)
@@ -149,6 +200,7 @@ function CaseDetail() {
         setInsight(sessionResult.insight)
         setPictureBooks(pictureBookList)
         setGameSessions(gameSessionList)
+        setVideoAnalyses(videoAnalysisList)
       })
       .catch((err) => setError(apiErrorMessage(err, '加载失败')))
       .finally(() => setLoading(false))
@@ -189,6 +241,21 @@ function CaseDetail() {
     }
   }
 
+  async function handleGenerateSummary() {
+    if (!caseId) return
+    setShowSummary(true)
+    setSummaryLoading(true)
+    setSummaryError(null)
+    try {
+      const { summary } = await api.generateCaseSummary(caseId)
+      setSummaryText(summary)
+    } catch (err) {
+      setSummaryError(apiErrorMessage(err, '总结生成失败'))
+    } finally {
+      setSummaryLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-brand-50">
@@ -219,21 +286,28 @@ function CaseDetail() {
           {!editing ? (
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-black text-stone-900">{record.name}</h1>
+                <h1 className="text-2xl font-extrabold text-stone-900">{record.name}</h1>
                 {record.baseline && <p className="text-stone-600 mt-2">{record.baseline}</p>}
               </div>
               <div className="flex gap-2 shrink-0">
                 <button
                   type="button"
+                  onClick={handleGenerateSummary}
+                  className="px-4 py-2 rounded-xl bg-stone-200 text-stone-800 hover:bg-stone-300 active:scale-[0.97] text-sm font-bold transition-all duration-200"
+                >
+                  AI 总结
+                </button>
+                <button
+                  type="button"
                   onClick={() => setShowShare(true)}
-                  className="px-4 py-2 rounded-xl bg-stone-200 text-stone-800 hover:bg-stone-300 text-sm font-bold"
+                  className="px-4 py-2 rounded-xl bg-stone-200 text-stone-800 hover:bg-stone-300 active:scale-[0.97] text-sm font-bold transition-all duration-200"
                 >
                   家长分享
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditing(true)}
-                  className="px-4 py-2 rounded-xl bg-stone-200 text-stone-800 hover:bg-stone-300 text-sm font-bold"
+                  className="px-4 py-2 rounded-xl bg-stone-200 text-stone-800 hover:bg-stone-300 active:scale-[0.97] text-sm font-bold transition-all duration-200"
                 >
                   编辑
                 </button>
@@ -266,7 +340,7 @@ function CaseDetail() {
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="bg-brand-500 text-white font-medium px-5 py-2 rounded-xl hover:bg-brand-600 disabled:opacity-50"
+                  className="bg-brand-500 text-white font-medium px-5 py-2 rounded-xl hover:bg-brand-600 active:scale-[0.98] disabled:opacity-50 transition-all duration-200"
                 >
                   {savingEdit ? '保存中...' : '保存'}
                 </button>
@@ -279,7 +353,7 @@ function CaseDetail() {
                     setEditError(null)
                   }}
                   disabled={savingEdit}
-                  className="px-5 py-2 rounded-xl bg-stone-200 text-stone-800 hover:bg-stone-300"
+                  className="px-5 py-2 rounded-xl bg-stone-200 text-stone-800 hover:bg-stone-300 active:scale-[0.97] transition-all duration-200"
                 >
                   取消
                 </button>
@@ -296,10 +370,10 @@ function CaseDetail() {
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-black text-stone-900">教案</h2>
+            <h2 className="text-xl font-extrabold text-stone-900">教案</h2>
             <Link
               to={`/cases/${caseId}/new`}
-              className="bg-brand-500 text-white font-bold px-5 py-2.5 rounded-full shadow-soft hover:bg-brand-600 transition-colors"
+              className="bg-brand-500 text-white font-bold px-5 py-2.5 rounded-full shadow-soft hover:bg-brand-600 active:scale-[0.98] transition-all duration-200"
             >
               ＋ 新建教案
             </Link>
@@ -320,13 +394,13 @@ function CaseDetail() {
                 <Link
                   key={lesson.id}
                   to={`/cases/${caseId}/lessons/${lesson.id}`}
-                  className="relative block bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:shadow-soft hover:-translate-y-1 transition-all"
+                  className="relative block bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5 hover:shadow-float hover:-translate-y-0.5 transition-all duration-300 ease-bounce-soft"
                 >
                   <button
                     type="button"
                     onClick={(event) => handleDeleteLesson(event, lesson.id)}
                     disabled={deletingLessonId === lesson.id}
-                    className="absolute top-3 right-3 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-full px-2.5 py-1 transition-colors disabled:opacity-50"
+                    className="absolute top-3 right-3 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 active:scale-[0.97] rounded-full px-2.5 py-1 transition-all duration-200 disabled:opacity-50"
                   >
                     {deletingLessonId === lesson.id ? '删除中...' : '删除'}
                   </button>
@@ -339,7 +413,7 @@ function CaseDetail() {
                   ) : (
                     <div className="w-full h-36 rounded-xl mb-4 bg-brand-50" />
                   )}
-                  <h3 className="text-lg font-black text-stone-900 truncate pr-14">{lesson.title}</h3>
+                  <h3 className="text-lg font-bold text-stone-900 truncate pr-14">{lesson.title}</h3>
                   <p className="text-sm text-stone-600 mt-2">
                     <span className="inline-block rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700">
                       {lesson.skill}
@@ -353,7 +427,7 @@ function CaseDetail() {
         </div>
 
         <div>
-          <h2 className="text-xl font-black text-stone-900 mb-4">绘本打卡记录</h2>
+          <h2 className="text-xl font-extrabold text-stone-900 mb-4">绘本打卡记录</h2>
           {pictureBooks.length === 0 ? (
             <p className="text-stone-500">还没有关联的绘本打卡记录</p>
           ) : (
@@ -363,7 +437,7 @@ function CaseDetail() {
                   key={book.id}
                   className="bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5"
                 >
-                  <h3 className="text-lg font-black text-stone-900 truncate">{book.title}</h3>
+                  <h3 className="text-lg font-bold text-stone-900 truncate">{book.title}</h3>
                   <p className="text-xs text-stone-400 mt-1">{formatDate(book.createdAt)}</p>
                   <TeacherScoreLine cooperation={book.teacherCooperation} progress={book.teacherProgress} />
                 </div>
@@ -373,7 +447,7 @@ function CaseDetail() {
         </div>
 
         <div>
-          <h2 className="text-xl font-black text-stone-900 mb-4">游戏记录</h2>
+          <h2 className="text-xl font-extrabold text-stone-900 mb-4">游戏记录</h2>
           {gameSessions.length === 0 ? (
             <p className="text-stone-500">还没有关联的游戏记录</p>
           ) : (
@@ -383,7 +457,7 @@ function CaseDetail() {
                   key={session.id}
                   className="bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5"
                 >
-                  <h3 className="text-lg font-black text-stone-900 truncate">
+                  <h3 className="text-lg font-bold text-stone-900 truncate">
                     {session.gameId} · 第 {session.level} 关
                   </h3>
                   <p className="text-sm text-stone-600 mt-1">得分 {session.score}</p>
@@ -394,9 +468,52 @@ function CaseDetail() {
             </div>
           )}
         </div>
+
+        <div>
+          <h2 className="text-xl font-black text-stone-900 mb-4">视频分析记录</h2>
+          {videoAnalyses.length === 0 ? (
+            <p className="text-stone-500">还没有关联的视频分析记录</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {videoAnalyses.map((analysis) => (
+                <div
+                  key={analysis.id}
+                  className="bg-white rounded-2xl border-t-4 border-brand-400 shadow-card ring-1 ring-brand-100 p-5"
+                >
+                  <p className="text-xs text-stone-400 mb-2">{formatDate(analysis.createdAt)}</p>
+                  {analysis.report ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {DIMENSION_META.map(({ key, label }) => {
+                        const dim = analysis.report!.dimensions[key]
+                        return (
+                          <span
+                            key={key}
+                            className={`inline-block rounded-full px-2 py-0.5 text-xs font-bold ${RATING_BADGE[dim.rating]}`}
+                          >
+                            {label}:{dim.rating}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-stone-500">暂无报告</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {showShare && <ShareModal shareToken={record.shareToken} onClose={() => setShowShare(false)} />}
+      {showSummary && (
+        <SummaryModal
+          loading={summaryLoading}
+          error={summaryError}
+          summary={summaryText}
+          onClose={() => setShowSummary(false)}
+        />
+      )}
     </div>
   )
 }
