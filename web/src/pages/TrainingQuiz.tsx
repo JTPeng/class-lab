@@ -4,6 +4,12 @@ import { api, apiErrorMessage } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import type { TrainingAttempt, TrainingQuestion } from '../types/training'
 
+function isSameAnswer(given: number[], correct: number[]): boolean {
+  const g = [...given].sort((a, b) => a - b)
+  const c = [...correct].sort((a, b) => a - b)
+  return g.length === c.length && g.every((v, idx) => v === c[idx])
+}
+
 export default function TrainingQuiz() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
@@ -14,6 +20,8 @@ export default function TrainingQuiz() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [checked, setChecked] = useState(false)
+  const [isCorrect, setIsCorrect] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -28,6 +36,7 @@ export default function TrainingQuiz() {
   }, [id])
 
   function toggleOption(qIndex: number, optionIndex: number, multi: boolean) {
+    if (checked) return
     setAnswers((prev) => {
       const next = [...prev]
       const current = next[qIndex] ?? []
@@ -40,15 +49,37 @@ export default function TrainingQuiz() {
     })
   }
 
-  async function submit() {
+  async function submitAttempt(finalAnswers: number[][]) {
     if (!id || !user) return
     setSubmitting(true)
     try {
-      setResult(await api.submitTrainingAttempt(id, user.id, answers))
+      setResult(await api.submitTrainingAttempt(id, user.id, finalAnswers))
     } catch (err) {
       setError(apiErrorMessage(err, '提交失败'))
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  function advance(finalAnswers: number[][]) {
+    if (index < questions.length - 1) {
+      setIndex((i) => i + 1)
+      setChecked(false)
+      setIsCorrect(false)
+    } else {
+      submitAttempt(finalAnswers)
+    }
+  }
+
+  function checkAnswer() {
+    const q = questions[index]
+    const selected = answers[index] ?? []
+    if (!q || selected.length === 0) return
+    const correct = isSameAnswer(selected, q.correctAnswers)
+    setChecked(true)
+    setIsCorrect(correct)
+    if (correct) {
+      advance(answers)
     }
   }
 
@@ -73,6 +104,7 @@ export default function TrainingQuiz() {
   const q = questions[index]
   if (!q) return null
   const selected = answers[index] ?? []
+  const isLast = index === questions.length - 1
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
@@ -85,40 +117,40 @@ export default function TrainingQuiz() {
         {q.options.map((opt, i) => (
           <button
             key={i}
+            disabled={checked}
             onClick={() => toggleOption(index, i, q.type === 'multi')}
             className={
               selected.includes(i)
-                ? 'w-full text-left px-4 py-2 rounded-xl bg-brand-500 text-white font-bold'
-                : 'w-full text-left px-4 py-2 rounded-xl bg-white ring-1 ring-brand-100 text-stone-700'
+                ? 'w-full text-left px-4 py-2 rounded-xl bg-brand-500 text-white font-bold disabled:opacity-70'
+                : 'w-full text-left px-4 py-2 rounded-xl bg-white ring-1 ring-brand-100 text-stone-700 disabled:opacity-70'
             }
           >
             {opt}
           </button>
         ))}
       </div>
-      <div className="flex items-center justify-between">
-        <button
-          disabled={index === 0}
-          onClick={() => setIndex((i) => i - 1)}
-          className="px-4 py-2 rounded-full font-bold text-stone-500 disabled:opacity-40"
-        >
-          上一题
-        </button>
-        {index < questions.length - 1 ? (
+      {checked && !isCorrect && (
+        <div className="bg-red-50 ring-1 ring-red-100 rounded-xl p-4 text-sm text-stone-700 mb-6">
+          <p className="font-bold text-red-500 mb-1">答错了</p>
+          <p>{q.explanation}</p>
+        </div>
+      )}
+      <div className="flex items-center justify-end">
+        {!checked ? (
           <button
             disabled={selected.length === 0}
-            onClick={() => setIndex((i) => i + 1)}
+            onClick={checkAnswer}
             className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft disabled:opacity-40"
           >
-            下一题
+            提交答案
           </button>
         ) : (
           <button
-            disabled={selected.length === 0 || submitting}
-            onClick={submit}
+            disabled={submitting}
+            onClick={() => advance(answers)}
             className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft disabled:opacity-40"
           >
-            {submitting ? '提交中…' : '交卷'}
+            {submitting ? '提交中…' : isLast ? '查看结果' : '下一题'}
           </button>
         )}
       </div>
