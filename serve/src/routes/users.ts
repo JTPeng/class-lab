@@ -1,11 +1,11 @@
 import type { FastifyInstance } from 'fastify';
-import type Database from 'better-sqlite3';
+import type { DbClient } from '../db/client.js';
 import { z } from 'zod';
 import { login, InvalidCredentialsError } from '../db/users.js';
 import { getModuleData, putModuleData } from '../db/moduleData.js';
 
 export interface UserRoutesDeps {
-  db: Database.Database;
+  db: DbClient;
 }
 
 const LoginSchema = z.object({
@@ -28,7 +28,7 @@ export async function registerUserRoutes(app: FastifyInstance, deps: UserRoutesD
       return reply.status(400).send({ error: '用户名或密码不能为空', issues: parsed.error.issues });
     }
     try {
-      const { password: _password, ...safeUser } = login(db, parsed.data.username, parsed.data.password);
+      const { password: _password, ...safeUser } = await login(db, parsed.data.username, parsed.data.password);
       return reply.status(200).send(safeUser);
     } catch (err) {
       if (err instanceof InvalidCredentialsError) {
@@ -44,7 +44,7 @@ export async function registerUserRoutes(app: FastifyInstance, deps: UserRoutesD
     async (request, reply) => {
       const module = ModuleSchema.safeParse(request.params.module);
       if (!module.success) return reply.status(400).send({ error: '未知模块' });
-      const data = getModuleData(db, request.params.userId, module.data, request.params.key);
+      const data = await getModuleData(db, request.params.userId, module.data, request.params.key);
       return reply.status(200).send({ data });
     },
   );
@@ -57,7 +57,7 @@ export async function registerUserRoutes(app: FastifyInstance, deps: UserRoutesD
       if (!module.success) return reply.status(400).send({ error: '未知模块' });
       const parsed = PutDataSchema.safeParse(request.body);
       if (!parsed.success) return reply.status(400).send({ error: '缺少 data' });
-      putModuleData(db, request.params.userId, module.data, request.params.key, parsed.data.data);
+      await putModuleData(db, request.params.userId, module.data, request.params.key, parsed.data.data);
       return reply.status(200).send({ ok: true });
     },
   );

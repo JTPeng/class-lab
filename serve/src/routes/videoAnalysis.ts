@@ -4,7 +4,7 @@ import { join, extname } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
-import type Database from 'better-sqlite3';
+import type { DbClient } from '../db/client.js';
 import { z } from 'zod';
 import {
   deleteVideoAnalysis,
@@ -21,7 +21,7 @@ import {
 import { deleteKeptFrames, runAnalysisJob, videosDir } from '../lib/videoJobs.js';
 
 export interface VideoAnalysisRoutesDeps {
-  db: Database.Database;
+  db: DbClient;
 }
 
 const StyleSchema = z.enum(REPORT_STYLES as [ReportStyle, ...ReportStyle[]]).optional();
@@ -45,7 +45,8 @@ export function registerVideoAnalysisRoutes(app: FastifyInstance, deps: VideoAna
   const { db } = deps;
 
   // 创建分析任务：multipart（文件）或 application/json { url }，二选一。
-  app.post('/video/analyses', async (request, reply) => {
+  app.post<{ Params: { userId: string } }>('/users/:userId/video/analyses', async (request, reply) => {
+    const { userId } = request.params;
     // —— 文件上传 ——
     if (request.isMultipart()) {
       const file = await request.file();
@@ -61,7 +62,7 @@ export function registerVideoAnalysisRoutes(app: FastifyInstance, deps: VideoAna
       const dest = join(videosDir, `${record.id}${ALLOWED_EXT.has(ext) ? ext : '.mp4'}`);
       await mkdir(videosDir, { recursive: true });
       await pipeline(file.file, createWriteStream(dest));
-      insertVideoAnalysis(db, record);
+      await insertVideoAnalysis(db, record, userId);
       void runAnalysisJob(db, record.id, dest);
       return reply.status(201).send({ id: record.id });
     }
@@ -72,33 +73,33 @@ export function registerVideoAnalysisRoutes(app: FastifyInstance, deps: VideoAna
       return reply.status(400).send({ error: '请提供有效的视频链接（url），或改用文件上传。' });
     }
     const record = createRecord({ type: 'url', url: parsed.data.url }, parsed.data.style);
-    insertVideoAnalysis(db, record);
+    await insertVideoAnalysis(db, record, userId);
     void runAnalysisJob(db, record.id, undefined); // 由 job 下载
     return reply.status(201).send({ id: record.id });
   });
 
   // 轮询任务状态 / 进度 / 报告。
-  app.get<{ Params: { id: string } }>('/video/jobs/:id', async (request, reply) => {
-    const analysis = getVideoAnalysis(db, request.params.id);
+  app.get<{ Params: { userId: string; id: string } }>('/users/:userId/video/jobs/:id', async (request, reply) => {
+    const analysis = await getVideoAnalysis(db, request.params.id, request.params.userId);
     if (!analysis) return reply.status(404).send({ error: '任务不存在或已失效，请重新上传。' });
     return reply.status(200).send(analysis);
   });
 
   // 历史分析列表。
-  app.get('/video/analyses', async (_request, reply) => {
-    return reply.status(200).send(listVideoAnalyses(db));
+  app.get<{ Params: { userId: string } }>('/users/:userId/video/analyses', async (request, reply) => {
+    return reply.status(200).send(await listVideoAnalyses(db, request.params.userId));
   });
 
   // 单条详情。
-  app.get<{ Params: { id: string } }>('/video/analyses/:id', async (request, reply) => {
-    const analysis = getVideoAnalysis(db, request.params.id);
+  app.get<{ Params: { userId: string; id: string } }>('/users/:userId/video/analyses/:id', async (request, reply) => {
+    const analysis = await getVideoAnalysis(db, request.params.id, request.params.userId);
     if (!analysis) return reply.status(404).send({ error: '未找到该分析记录。' });
     return reply.status(200).send(analysis);
   });
 
   // 删除一条。
-  app.delete<{ Params: { id: string } }>('/video/analyses/:id', async (request, reply) => {
-    const deleted = deleteVideoAnalysis(db, request.params.id);
+  app.delete<{ Params: { userId: string; id: string } }>('/users/:userId/video/analyses/:id', async (request, reply) => {
+    const deleted = await deleteVideoAnalysis(db, request.params.id, request.params.userId);
     if (!deleted) return reply.status(404).send({ error: '未找到该分析记录。' });
     return reply.status(204).send();
   });

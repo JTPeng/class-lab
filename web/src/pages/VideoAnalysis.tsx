@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api, apiErrorMessage } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 import {
   DEFAULT_REPORT_STYLE,
   REPORT_STYLES,
@@ -51,6 +52,7 @@ const STYLE_HINT: Record<ReportStyle, string> = {
 }
 
 function VideoAnalysis() {
+  const { user } = useAuth()
   const [tab, setTab] = useState<'file' | 'url'>('file')
   const [file, setFile] = useState<File | null>(null)
   const [url, setUrl] = useState('')
@@ -67,7 +69,7 @@ function VideoAnalysis() {
 
   function refreshList() {
     return api
-      .listVideoAnalyses()
+      .listVideoAnalyses(user!.id)
       .then(setList)
       .catch((err) => setError(apiErrorMessage(err, '加载历史失败')))
   }
@@ -89,7 +91,7 @@ function VideoAnalysis() {
     stopPolling()
     const tick = async () => {
       try {
-        const j = await api.getVideoJob(id)
+        const j = await api.getVideoJob(user!.id, id)
         setJob(j)
         if (j.status === 'done' || j.status === 'failed') {
           stopPolling()
@@ -118,8 +120,8 @@ function VideoAnalysis() {
     try {
       const { id } =
         tab === 'file'
-          ? await api.createVideoAnalysisFromFile(file!, style)
-          : await api.createVideoAnalysisFromUrl(url.trim(), style)
+          ? await api.createVideoAnalysisFromFile(user!.id, file!, style)
+          : await api.createVideoAnalysisFromUrl(user!.id, url.trim(), style)
       setFile(null)
       setUrl('')
       startPolling(id)
@@ -136,7 +138,7 @@ function VideoAnalysis() {
     if (!window.confirm('确定删除这条分析记录？')) return
     setDeletingId(id)
     try {
-      await api.deleteVideoAnalysis(id)
+      await api.deleteVideoAnalysis(user!.id, id)
       setList((prev) => prev.filter((item) => item.id !== id))
     } catch (err) {
       setError(apiErrorMessage(err, '删除失败'))

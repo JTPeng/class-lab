@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 import type { Lesson } from '../types/lesson'
 import Hero from '../components/poster/Hero'
 import PhaseTimeline from '../components/poster/PhaseTimeline'
@@ -10,6 +11,7 @@ import TargetCarousel from '../components/TargetCarousel'
 import SessionNote from '../components/poster/SessionNote'
 
 function LessonDetail() {
+  const { user } = useAuth()
   const { id } = useParams<{ id: string }>()
   const [lesson, setLesson] = useState<Lesson | null>(null)
   const [loading, setLoading] = useState(true)
@@ -20,11 +22,11 @@ function LessonDetail() {
     setLoading(true)
     setError(null)
     api
-      .getLesson(id)
+      .getLesson(user!.id, id)
       .then(setLesson)
       .catch((err) => setError(err instanceof Error ? err.message : '加载失败'))
       .finally(() => setLoading(false))
-  }, [id])
+  }, [id, user])
 
   if (loading) {
     return (

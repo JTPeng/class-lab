@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, apiErrorMessage } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 import { DIMENSION_META, type Rating, type VideoAnalysis } from '../types/video'
 import { formatClock, phaseLabel, progressPercent } from '../lib/video'
 import { downloadReportHtml, downloadReportPdf } from '../lib/videoReportExport'
@@ -21,6 +22,7 @@ const RATING_BORDER: Record<Rating, string> = {
 }
 
 function VideoAnalysisDetail() {
+  const { user } = useAuth()
   const { id } = useParams<{ id: string }>()
   const [analysis, setAnalysis] = useState<VideoAnalysis | null>(null)
   const [loading, setLoading] = useState(true)
@@ -44,7 +46,7 @@ function VideoAnalysisDetail() {
 
     async function load() {
       try {
-        const a = await api.getVideoAnalysis(id!)
+        const a = await api.getVideoAnalysis(user!.id, id!)
         setAnalysis(a)
         setError(null)
         if (a.status !== 'processing') stopPolling()
@@ -59,7 +61,7 @@ function VideoAnalysisDetail() {
     load()
     pollRef.current = window.setInterval(load, 2000)
     return () => stopPolling()
-  }, [id])
+  }, [id, user])
 
   useEffect(() => {
     if (!activeClip) return

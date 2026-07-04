@@ -1,12 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { LessonSchema, type Lesson } from '../schema/lesson.js';
+import { createDbClient } from './client.js';
 import {
   deleteLesson,
-  getDb,
   getLesson,
+  initSchema,
   insertLesson,
   listLessons,
 } from './index.js';
+
+async function memoryDb() {
+  const db = await createDbClient({ driver: 'sqlite', sqlitePath: ':memory:' });
+  await initSchema(db);
+  return db;
+}
 
 function buildLesson(overrides: Partial<Lesson> = {}): Lesson {
   const base = {
@@ -60,24 +67,26 @@ function buildLesson(overrides: Partial<Lesson> = {}): Lesson {
   return LessonSchema.parse(base);
 }
 
+const USER_ID = 'user-001';
+
 describe('db/lessons repository', () => {
-  it('round-trips a lesson through insertLesson/getLesson', () => {
-    const db = getDb(':memory:');
+  it('round-trips a lesson through insertLesson/getLesson', async () => {
+    const db = await memoryDb();
     const lesson = buildLesson();
 
-    insertLesson(db, lesson);
+    await insertLesson(db, lesson, USER_ID);
 
-    expect(getLesson(db, lesson.id)).toEqual(lesson);
+    expect(await getLesson(db, lesson.id)).toEqual(lesson);
   });
 
-  it('returns null from getLesson when the id does not exist', () => {
-    const db = getDb(':memory:');
+  it('returns null from getLesson when the id does not exist', async () => {
+    const db = await memoryDb();
 
-    expect(getLesson(db, 'missing')).toBeNull();
+    expect(await getLesson(db, 'missing')).toBeNull();
   });
 
-  it('listLessons returns summary fields ordered newest first', () => {
-    const db = getDb(':memory:');
+  it('listLessons returns summary fields ordered newest first', async () => {
+    const db = await memoryDb();
     const older = buildLesson({
       id: 'lesson-old',
       title: '旧教案',
@@ -89,10 +98,10 @@ describe('db/lessons repository', () => {
       createdAt: '2026-07-02T00:00:00.000Z',
     });
 
-    insertLesson(db, older);
-    insertLesson(db, newer);
+    await insertLesson(db, older, USER_ID);
+    await insertLesson(db, newer, USER_ID);
 
-    const list = listLessons(db);
+    const list = await listLessons(db, USER_ID);
 
     expect(list).toHaveLength(2);
     expect(list.map((item) => item.id)).toEqual(['lesson-new', 'lesson-old']);
@@ -105,8 +114,21 @@ describe('db/lessons repository', () => {
     });
   });
 
-  it('listLessons derives coverUrl from the first done image with a url', () => {
-    const db = getDb(':memory:');
+  it('listLessons only returns lessons belonging to the given userId', async () => {
+    const db = await memoryDb();
+    const mine = buildLesson({ id: 'lesson-mine' });
+    const theirs = buildLesson({ id: 'lesson-theirs' });
+
+    await insertLesson(db, mine, USER_ID);
+    await insertLesson(db, theirs, 'user-002');
+
+    const list = await listLessons(db, USER_ID);
+
+    expect(list.map((item) => item.id)).toEqual(['lesson-mine']);
+  });
+
+  it('listLessons derives coverUrl from the first done image with a url', async () => {
+    const db = await memoryDb();
     const lesson = buildLesson({
       images: [
         { refKey: 'target:a', prompt: 'a', status: 'pending' },
@@ -115,18 +137,18 @@ describe('db/lessons repository', () => {
       ],
     });
 
-    insertLesson(db, lesson);
+    await insertLesson(db, lesson, USER_ID);
 
-    expect(listLessons(db)[0].coverUrl).toBe('https://example.com/b.png');
+    expect((await listLessons(db, USER_ID))[0].coverUrl).toBe('https://example.com/b.png');
   });
 
-  it('deleteLesson removes the row and returns true, then false for missing id', () => {
-    const db = getDb(':memory:');
+  it('deleteLesson removes the row and returns true, then false for missing id', async () => {
+    const db = await memoryDb();
     const lesson = buildLesson();
-    insertLesson(db, lesson);
+    await insertLesson(db, lesson, USER_ID);
 
-    expect(deleteLesson(db, lesson.id)).toBe(true);
-    expect(getLesson(db, lesson.id)).toBeNull();
-    expect(deleteLesson(db, lesson.id)).toBe(false);
+    expect(await deleteLesson(db, lesson.id)).toBe(true);
+    expect(await getLesson(db, lesson.id)).toBeNull();
+    expect(await deleteLesson(db, lesson.id)).toBe(false);
   });
 });

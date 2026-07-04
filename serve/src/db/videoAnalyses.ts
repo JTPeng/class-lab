@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type { DbClient } from './client.js';
 import type { VideoAnalysis, VideoAnalysisSource } from '../schema/videoAnalysis.js';
 
 // 视频分析报告持久化：与 lessons「单表存整对象 JSON」模式一致（见设计 §4）。
@@ -19,39 +19,55 @@ type VideoAnalysisRow = {
   data: string;
 };
 
-export function createVideoAnalysesTable(db: Database.Database): void {
-  db.exec(
+export async function createVideoAnalysesTable(db: DbClient): Promise<void> {
+  const idType = db.dialect === 'mysql' ? 'VARCHAR(36) PRIMARY KEY' : 'TEXT PRIMARY KEY';
+  const dataType = db.dialect === 'mysql' ? 'LONGTEXT' : 'TEXT';
+  await db.exec(
     `CREATE TABLE IF NOT EXISTS video_analyses(
-      id TEXT PRIMARY KEY,
+      id ${idType},
       filename TEXT,
       createdAt TEXT,
-      data TEXT
+      data ${dataType}
     )`,
   );
+  if (db.dialect === 'mysql') {
+    const row = await db.get<{ count: number }>(
+      `SELECT COUNT(*) AS count FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'video_analyses' AND column_name = 'userId'`,
+    );
+    if (!row || row.count === 0) {
+      await db.exec(`ALTER TABLE video_analyses ADD COLUMN userId VARCHAR(191)`);
+    }
+  } else {
+    const columns = await db.all<{ name: string }>(`PRAGMA table_info(video_analyses)`);
+    if (!columns.some((c) => c.name === 'userId')) {
+      await db.exec(`ALTER TABLE video_analyses ADD COLUMN userId TEXT`);
+    }
+  }
 }
 
-export function insertVideoAnalysis(db: Database.Database, analysis: VideoAnalysis): void {
-  db.prepare(
-    `INSERT INTO video_analyses (id, filename, createdAt, data) VALUES (?, ?, ?, ?)`,
-  ).run(
-    analysis.id,
-    analysis.source.filename ?? null,
-    analysis.createdAt,
-    JSON.stringify(analysis),
+export async function insertVideoAnalysis(
+  db: DbClient,
+  analysis: VideoAnalysis,
+  userId: string,
+): Promise<void> {
+  await db.run(
+    `INSERT INTO video_analyses (id, filename, createdAt, data, userId) VALUES (?, ?, ?, ?, ?)`,
+    [analysis.id, analysis.source.filename ?? null, analysis.createdAt, JSON.stringify(analysis), userId],
   );
 }
 
-export function updateVideoAnalysis(db: Database.Database, analysis: VideoAnalysis): void {
-  db.prepare(`UPDATE video_analyses SET data = ? WHERE id = ?`).run(
+export async function updateVideoAnalysis(db: DbClient, analysis: VideoAnalysis): Promise<void> {
+  await db.run(`UPDATE video_analyses SET data = ? WHERE id = ?`, [
     JSON.stringify(analysis),
     analysis.id,
-  );
+  ]);
 }
 
-export function listVideoAnalyses(db: Database.Database): VideoAnalysisListItem[] {
-  const rows = db
-    .prepare(`SELECT id, filename, createdAt, data FROM video_analyses ORDER BY createdAt DESC`)
-    .all() as VideoAnalysisRow[];
+export async function listVideoAnalyses(db: DbClient, userId: string): Promise<VideoAnalysisListItem[]> {
+  const rows = await db.all<VideoAnalysisRow>(
+    `SELECT id, filename, createdAt, data FROM video_analyses WHERE userId = ? ORDER BY createdAt DESC`,
+    [userId],
+  );
 
   return rows.map((row) => {
     const a = JSON.parse(row.data) as VideoAnalysis;
@@ -65,15 +81,16 @@ export function listVideoAnalyses(db: Database.Database): VideoAnalysisListItem[
   });
 }
 
-export function getVideoAnalysis(db: Database.Database, id: string): VideoAnalysis | null {
-  const row = db.prepare(`SELECT data FROM video_analyses WHERE id = ?`).get(id) as
-    | { data: string }
-    | undefined;
-
+export async function getVideoAnalysis(db: DbClient, id: string, userId?: string): Promise<VideoAnalysis | null> {
+  const row = userId
+    ? await db.get<{ data: string }>(`SELECT data FROM video_analyses WHERE id = ? AND userId = ?`, [id, userId])
+    : await db.get<{ data: string }>(`SELECT data FROM video_analyses WHERE id = ?`, [id]);
   return row ? (JSON.parse(row.data) as VideoAnalysis) : null;
 }
 
-export function deleteVideoAnalysis(db: Database.Database, id: string): boolean {
-  const result = db.prepare(`DELETE FROM video_analyses WHERE id = ?`).run(id);
+export async function deleteVideoAnalysis(db: DbClient, id: string, userId?: string): Promise<boolean> {
+  const result = userId
+    ? await db.run(`DELETE FROM video_analyses WHERE id = ? AND userId = ?`, [id, userId])
+    : await db.run(`DELETE FROM video_analyses WHERE id = ?`, [id]);
   return result.changes > 0;
 }

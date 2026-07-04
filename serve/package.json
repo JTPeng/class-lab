@@ -11,7 +11,8 @@
     "warmup:images": "tsx src/scripts/warmupAnimalImages.ts",
     "warmup:fruits": "tsx src/scripts/warmupFruitImages.ts",
     "warmup:poses": "tsx src/scripts/warmupPoseImages.ts",
-    "probe:omni": "tsx src/scripts/probeOmni.ts"
+    "probe:omni": "tsx src/scripts/probeOmni.ts",
+    "migrate:mysql": "tsx src/scripts/migrateToMysql.ts"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +24,7 @@
     "better-sqlite3": "^12.11.1",
     "dotenv": "^17.4.2",
     "fastify": "^5.9.0",
+    "mysql2": "^3.22.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { FastifyInstance } from 'fastify';
-import type Database from 'better-sqlite3';
+import type { DbClient } from '../db/client.js';
 import { z } from 'zod';
 import { getLesson, updateLesson } from '../db/index.js';
 import { generateImageUrl as defaultGenerateImageUrl } from '../ai/imageClient.js';
@@ -14,7 +14,7 @@ const ImageRequestBodySchema = z.object({
 });
 
 export interface ImageRoutesDeps {
-  db: Database.Database;
+  db: DbClient;
   generateImageUrl?: typeof defaultGenerateImageUrl;
   fetchImpl?: typeof fetch;
 }
@@ -55,11 +55,11 @@ function upsertImage(images: Image[], entry: Image): Image[] {
 // Re-reads the lesson right before persisting so that concurrent generations
 // for different refKeys on the same lesson don't clobber each other's writes.
 // If the lesson was deleted in the meantime, skip the write gracefully.
-function persistImageEntry(db: Database.Database, lessonId: string, entry: Image): void {
-  const fresh = getLesson(db, lessonId);
+async function persistImageEntry(db: DbClient, lessonId: string, entry: Image): Promise<void> {
+  const fresh = await getLesson(db, lessonId);
   if (!fresh) return;
   fresh.images = upsertImage(fresh.images, entry);
-  updateLesson(db, fresh);
+  await updateLesson(db, fresh);
 }
 
 export async function registerImageRoutes(app: FastifyInstance, deps: ImageRoutesDeps) {
@@ -76,7 +76,7 @@ export async function registerImageRoutes(app: FastifyInstance, deps: ImageRoute
       }
       const { refKey, prompt } = parsed.data;
 
-      const lesson = getLesson(db, request.params.id);
+      const lesson = await getLesson(db, request.params.id);
       if (!lesson) {
         return reply.status(404).send({ error: 'Lesson not found' });
       }
@@ -101,7 +101,7 @@ export async function registerImageRoutes(app: FastifyInstance, deps: ImageRoute
         try {
           const url = await attempt();
           const entry: Image = { refKey, prompt, status: 'done', url };
-          persistImageEntry(db, lessonId, entry);
+          await persistImageEntry(db, lessonId, entry);
           return reply.status(200).send({ image: entry });
         } catch (err) {
           lastErr = err;
@@ -114,7 +114,7 @@ export async function registerImageRoutes(app: FastifyInstance, deps: ImageRoute
       }
 
       const entry: Image = { refKey, prompt, status: 'failed', reason: failureReason(lastErr) };
-      persistImageEntry(db, lessonId, entry);
+      await persistImageEntry(db, lessonId, entry);
       return reply.status(200).send({ image: entry });
     },
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 import type { LessonListItem } from '../types/lesson'
 
 function formatDate(iso: string): string {
@@ -16,6 +17,7 @@ function formatDate(iso: string): string {
 }
 
 function Home() {
+  const { user } = useAuth()
   const [lessons, setLessons] = useState<LessonListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -24,11 +26,11 @@ function Home() {
 
   useEffect(() => {
     api
-      .listLessons()
+      .listLessons(user!.id)
       .then(setLessons)
       .catch((err) => setError(err instanceof Error ? err.message : '加载失败'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [user])
 
   async function handleDelete(event: MouseEvent, id: string) {
     event.preventDefault()
@@ -37,7 +39,7 @@ function Home() {
     setDeletingId(id)
     setDeleteError(null)
     try {
-      await api.deleteLesson(id)
+      await api.deleteLesson(user!.id, id)
       setLessons((prev) => prev.filter((lesson) => lesson.id !== id))
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : '删除失败')
@@ -50,8 +52,9 @@ function Home() {
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 py-10 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-black text-stone-900">
-            Class-Lab <span className="text-brand-500">DTT</span> 教案工具
+          <h1 className="flex items-center gap-2 text-3xl font-black text-stone-900">
+            <img src="/favicon.svg" alt="" className="w-8 h-8" />
+            士多啤梨 <span className="text-brand-500">DTT</span> 教案工具
           </h1>
           <Link
             to="/new"

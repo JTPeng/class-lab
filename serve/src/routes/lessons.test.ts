@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../index.js';
-import { getDb } from '../db/index.js';
+import { createDbClient } from '../db/client.js';
+import { initSchema } from '../db/index.js';
 import type { Lesson, LessonInput } from '../schema/lesson.js';
 
 const validInput: LessonInput = {
@@ -50,27 +51,30 @@ function lessonFixture(): Lesson {
   };
 }
 
-function buildTestApp(generateLesson = vi.fn().mockResolvedValue(lessonFixture())) {
-  const db = getDb(':memory:');
-  const app = buildApp({ db, generateLesson });
+async function buildTestApp(generateLesson = vi.fn().mockResolvedValue(lessonFixture())) {
+  const db = await createDbClient({ driver: 'sqlite', sqlitePath: ':memory:' });
+  await initSchema(db);
+  const app = await buildApp({ db, generateLesson });
   return { app, db, generateLesson };
 }
 
+const USER_ID = 'user-001';
+
 describe('lessons routes', () => {
-  it('POST /api/lessons/generate returns 200 + the generated lesson, then it is listable/gettable', async () => {
+  it('POST /api/users/:userId/lessons/generate returns 200 + the generated lesson, then it is listable/gettable', async () => {
     const fixture = lessonFixture();
-    const { app } = buildTestApp(vi.fn().mockResolvedValue(fixture));
+    const { app } = await buildTestApp(vi.fn().mockResolvedValue(fixture));
 
     const generateResponse = await app.inject({
       method: 'POST',
-      url: '/api/lessons/generate',
+      url: `/api/users/${USER_ID}/lessons/generate`,
       payload: validInput,
     });
 
     expect(generateResponse.statusCode).toBe(200);
     expect(generateResponse.json()).toEqual(fixture);
 
-    const listResponse = await app.inject({ method: 'GET', url: '/api/lessons' });
+    const listResponse = await app.inject({ method: 'GET', url: `/api/users/${USER_ID}/lessons` });
     expect(listResponse.statusCode).toBe(200);
     expect(listResponse.json()).toEqual([
       {
@@ -82,29 +86,29 @@ describe('lessons routes', () => {
       },
     ]);
 
-    const getResponse = await app.inject({ method: 'GET', url: `/api/lessons/${fixture.id}` });
+    const getResponse = await app.inject({ method: 'GET', url: `/api/users/${USER_ID}/lessons/${fixture.id}` });
     expect(getResponse.statusCode).toBe(200);
     expect(getResponse.json()).toEqual(fixture);
   });
 
-  it('POST /api/lessons/generate returns 400 for invalid input', async () => {
-    const { app } = buildTestApp();
+  it('POST /api/users/:userId/lessons/generate returns 400 for invalid input', async () => {
+    const { app } = await buildTestApp();
 
     const response = await app.inject({
       method: 'POST',
-      url: '/api/lessons/generate',
+      url: `/api/users/${USER_ID}/lessons/generate`,
       payload: { availableTools: ['碗'], context: '机构' }, // missing `skill`
     });
 
     expect(response.statusCode).toBe(400);
   });
 
-  it('POST /api/lessons/generate returns 502 when generation fails', async () => {
-    const { app } = buildTestApp(vi.fn().mockRejectedValue(new Error('upstream boom')));
+  it('POST /api/users/:userId/lessons/generate returns 502 when generation fails', async () => {
+    const { app } = await buildTestApp(vi.fn().mockRejectedValue(new Error('upstream boom')));
 
     const response = await app.inject({
       method: 'POST',
-      url: '/api/lessons/generate',
+      url: `/api/users/${USER_ID}/lessons/generate`,
       payload: validInput,
     });
 
@@ -112,28 +116,28 @@ describe('lessons routes', () => {
     expect(response.json().error).not.toMatch(/upstream boom/);
   });
 
-  it('GET /api/lessons/:id returns 404 for an unknown id', async () => {
-    const { app } = buildTestApp();
+  it('GET /api/users/:userId/lessons/:id returns 404 for an unknown id', async () => {
+    const { app } = await buildTestApp();
 
-    const response = await app.inject({ method: 'GET', url: '/api/lessons/unknown-id' });
+    const response = await app.inject({ method: 'GET', url: `/api/users/${USER_ID}/lessons/unknown-id` });
 
     expect(response.statusCode).toBe(404);
   });
 
-  it('DELETE /api/lessons/:id returns 204, then GET :id returns 404', async () => {
+  it('DELETE /api/users/:userId/lessons/:id returns 204, then GET :id returns 404', async () => {
     const fixture = lessonFixture();
-    const { app } = buildTestApp(vi.fn().mockResolvedValue(fixture));
+    const { app } = await buildTestApp(vi.fn().mockResolvedValue(fixture));
 
-    await app.inject({ method: 'POST', url: '/api/lessons/generate', payload: validInput });
+    await app.inject({ method: 'POST', url: `/api/users/${USER_ID}/lessons/generate`, payload: validInput });
 
     const deleteResponse = await app.inject({
       method: 'DELETE',
-      url: `/api/lessons/${fixture.id}`,
+      url: `/api/users/${USER_ID}/lessons/${fixture.id}`,
     });
     expect(deleteResponse.statusCode).toBe(204);
     expect(deleteResponse.body).toBe('');
 
-    const getResponse = await app.inject({ method: 'GET', url: `/api/lessons/${fixture.id}` });
+    const getResponse = await app.inject({ method: 'GET', url: `/api/users/${USER_ID}/lessons/${fixture.id}` });
     expect(getResponse.statusCode).toBe(404);
   });
 });

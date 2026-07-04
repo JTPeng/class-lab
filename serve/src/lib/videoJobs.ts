@@ -4,7 +4,7 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type Database from 'better-sqlite3';
+import type { DbClient } from '../db/client.js';
 import { getVideoAnalysis, updateVideoAnalysis } from '../db/videoAnalyses.js';
 import type { VideoAnalysis, VideoReport } from '../schema/videoAnalysis.js';
 import {
@@ -63,15 +63,15 @@ const MAX_WINDOW_RETRIES = 2;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // 把进度/状态写回 DB。每次都重读最新记录，避免覆盖并发写（此处串行，稳妥起见仍重读）。
-function patch(db: Database.Database, id: string, mut: (a: VideoAnalysis) => void): void {
-  const fresh = getVideoAnalysis(db, id);
+async function patch(db: DbClient, id: string, mut: (a: VideoAnalysis) => void): Promise<void> {
+  const fresh = await getVideoAnalysis(db, id);
   if (!fresh) return;
   mut(fresh);
-  updateVideoAnalysis(db, fresh);
+  await updateVideoAnalysis(db, fresh);
 }
 
-function fail(db: Database.Database, id: string, message: string): void {
-  patch(db, id, (a) => {
+async function fail(db: DbClient, id: string, message: string): Promise<void> {
+  await patch(db, id, (a) => {
     a.status = 'failed';
     a.progress.phase = 'failed';
     a.error = message;
@@ -131,34 +131,34 @@ async function analyzeWindowWithRetry(
 
 // 编排主流程。localPath 为上传已落盘的视频路径；URL 入口传 undefined，由本函数下载。
 export async function runAnalysisJob(
-  db: Database.Database,
+  db: DbClient,
   id: string,
   localPath: string | undefined,
 ): Promise<void> {
   const jobFramesDir = join(framesRoot, id);
   try {
-    const analysis = getVideoAnalysis(db, id);
+    const analysis = await getVideoAnalysis(db, id);
     if (!analysis) return;
 
     // 1) URL 入口：下载。
     let videoPath = localPath;
     if (!videoPath) {
       if (analysis.source.type !== 'url' || !analysis.source.url) {
-        return fail(db, id, '任务缺少视频来源。');
+        return await fail(db, id, '任务缺少视频来源。');
       }
-      patch(db, id, (a) => (a.progress.phase = 'downloading'));
+      await patch(db, id, (a) => (a.progress.phase = 'downloading'));
       videoPath = join(videosDir, `${id}.mp4`);
       await downloadToFile(analysis.source.url, videoPath);
     }
 
     // 2) 探测时长 + 校验（几秒 ~ 50 分钟）。
-    patch(db, id, (a) => (a.progress.phase = 'extracting'));
+    await patch(db, id, (a) => (a.progress.phase = 'extracting'));
     const durationSec = await probeDurationSec(videoPath);
     if (durationSec < MIN_DURATION_SEC) {
-      return fail(db, id, '视频过短或无法解析时长，请确认文件有效后重试。');
+      return await fail(db, id, '视频过短或无法解析时长，请确认文件有效后重试。');
     }
     if (durationSec > MAX_DURATION_SEC) {
-      return fail(
+      return await fail(
         db,
         id,
         `视频时长 ${Math.round(durationSec / 60)} 分钟，超出支持范围（最长 50 分钟），请裁剪后重试。`,
@@ -167,13 +167,13 @@ export async function runAnalysisJob(
 
     // 3) 切窗。
     const windowTotal = Math.ceil(durationSec / WINDOW_SEC);
-    patch(db, id, (a) => {
+    await patch(db, id, (a) => {
       a.durationSec = durationSec;
       a.progress.windowTotal = windowTotal;
     });
 
     // 4) 逐窗抽帧 + Map（串行，进度逐窗推进）。
-    patch(db, id, (a) => (a.progress.phase = 'analyzing'));
+    await patch(db, id, (a) => (a.progress.phase = 'analyzing'));
     const observations: WindowObservation[] = [];
     for (let w = 0; w < windowTotal; w++) {
       const startSec = w * WINDOW_SEC;
@@ -186,22 +186,22 @@ export async function runAnalysisJob(
           ? await analyzeWindowWithRetry(frames, startSec, endSec, w)
           : await analyzeWindowWithRetry([], startSec, endSec, w); // 抽帧为空也走降级
       observations.push(obs);
-      patch(db, id, (a) => (a.progress.windowDone = w + 1));
+      await patch(db, id, (a) => (a.progress.windowDone = w + 1));
     }
 
     // 5) Reduce 汇总成报告（按记录选定的风格）；再补行为统计与时间轴短视频。
-    patch(db, id, (a) => (a.progress.phase = 'reducing'));
+    await patch(db, id, (a) => (a.progress.phase = 'reducing'));
     const report = await reduceReport(observations, durationSec, analysis.style);
     report.stats = computeReportStats(observations);
     await attachTimelineClips(id, report, videoPath, durationSec); // 从原视频截取片段（视频文件此时仍保留）
 
-    patch(db, id, (a) => {
+    await patch(db, id, (a) => {
       a.report = report;
       a.status = 'done';
       a.progress.phase = 'done';
     });
   } catch (err) {
-    fail(db, id, err instanceof Error ? err.message : String(err));
+    await fail(db, id, err instanceof Error ? err.message : String(err));
   } finally {
     // 清理该任务的抽帧临时目录（视频文件保留，历史可追溯来源）。
     await rm(jobFramesDir, { recursive: true, force: true }).catch(() => {});
@@ -209,15 +209,15 @@ export async function runAnalysisJob(
 }
 
 // 服务启动时把上次进程遗留的 processing 记录标记为失败（内存 job 已丢，见设计 §9）。
-export function markInterruptedJobsFailed(db: Database.Database): void {
-  const rows = db.prepare(`SELECT data FROM video_analyses`).all() as { data: string }[];
+export async function markInterruptedJobsFailed(db: DbClient): Promise<void> {
+  const rows = await db.all<{ data: string }>(`SELECT data FROM video_analyses`);
   for (const row of rows) {
     const a = JSON.parse(row.data) as VideoAnalysis;
     if (a.status === 'processing') {
       a.status = 'failed';
       a.progress.phase = 'failed';
       a.error = '任务因服务重启中断，请重新上传分析。';
-      updateVideoAnalysis(db, a);
+      await updateVideoAnalysis(db, a);
     }
   }
 }

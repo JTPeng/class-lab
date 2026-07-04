@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { api } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 import { buildTargetImagePrompt, targetRefKey } from '../lib/lessonImages'
 import type { LessonInput } from '../types/lesson'
 
@@ -9,6 +10,7 @@ const MAX_AUTO_IMAGE_COUNT = 10
 
 function NewLesson() {
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [skill, setSkill] = useState('')
   const [availableTools, setAvailableTools] = useState<string[]>([])
@@ -57,7 +59,7 @@ function NewLesson() {
     setPhase('lesson')
     setError(null)
     try {
-      const lesson = await api.generateLesson(input)
+      const lesson = await api.generateLesson(user!.id, input)
 
       const requested = Math.min(Math.max(Number(imageCount) || 0, 0), MAX_AUTO_IMAGE_COUNT)
       const count = Math.min(requested, lesson.targetList.length)

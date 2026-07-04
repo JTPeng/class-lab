@@ -25,23 +25,23 @@ async function request<T>(path: string, options?: { method?: string; body?: unkn
   return res.json() as Promise<T>;
 }
 
-function generateLesson(input: LessonInput): Promise<Lesson> {
-  return request<Lesson>('/lessons/generate', {
+function generateLesson(userId: string, input: LessonInput): Promise<Lesson> {
+  return request<Lesson>(`/users/${userId}/lessons/generate`, {
     method: 'POST',
     body: input,
   });
 }
 
-function listLessons(): Promise<LessonListItem[]> {
-  return request<LessonListItem[]>('/lessons');
+function listLessons(userId: string): Promise<LessonListItem[]> {
+  return request<LessonListItem[]>(`/users/${userId}/lessons`);
 }
 
-function getLesson(id: string): Promise<Lesson> {
-  return request<Lesson>(`/lessons/${id}`);
+function getLesson(userId: string, id: string): Promise<Lesson> {
+  return request<Lesson>(`/users/${userId}/lessons/${id}`);
 }
 
-function deleteLesson(id: string): Promise<void> {
-  return request<void>(`/lessons/${id}`, { method: 'DELETE' });
+function deleteLesson(userId: string, id: string): Promise<void> {
+  return request<void>(`/users/${userId}/lessons/${id}`, { method: 'DELETE' });
 }
 
 async function generateImage(lessonId: string, refKey: string, prompt: string): Promise<Image> {
@@ -82,6 +82,31 @@ function getLanIp(): Promise<{ ip: string | null }> {
   return request<{ ip: string | null }>('/lan-url');
 }
 
+export interface PictureBookRecordDto {
+  id: string;
+  title: string;
+  thoughts: string;
+  stars: number;
+  style: string;
+  size: string;
+  scenes: PictureScene[];
+  date: string;
+  createdAt: string;
+  count: number;
+}
+
+function listPictureBooks(userId: string): Promise<PictureBookRecordDto[]> {
+  return request<PictureBookRecordDto[]>(`/users/${userId}/picturebooks`);
+}
+
+function createPictureBook(userId: string, record: PictureBookRecordDto): Promise<void> {
+  return request<void>(`/users/${userId}/picturebooks`, { method: 'POST', body: record }).then(() => undefined);
+}
+
+function deletePictureBookRemote(userId: string, id: string): Promise<void> {
+  return request<void>(`/users/${userId}/picturebooks/${id}`, { method: 'DELETE' });
+}
+
 // ===== 用户 / 登录 / 模块数据 =====
 
 export interface AuthUser {
@@ -110,40 +135,40 @@ function putModuleData(userId: string, module: string, key: string, data: unknow
 
 // 文件入口走 multipart（FormData）；不手动设 Content-Type，交给浏览器带 boundary。
 // style 须在 file 之前 append，后端才能从 file.fields 读到（见 routes/videoAnalysis.ts 注释）。
-function createVideoAnalysisFromFile(file: File, style?: ReportStyle): Promise<{ id: string }> {
+function createVideoAnalysisFromFile(userId: string, file: File, style?: ReportStyle): Promise<{ id: string }> {
   if (USE_VIDEO_MOCK) return videoMock.createFromFile(file, style);
   const form = new FormData();
   if (style) form.append('style', style);
   form.append('file', file);
-  return fetch(`${BASE}/video/analyses`, { method: 'POST', body: form }).then(async (res) => {
+  return fetch(`${BASE}/users/${userId}/video/analyses`, { method: 'POST', body: form }).then(async (res) => {
     if (!res.ok) throw new Error(await res.text());
     return res.json() as Promise<{ id: string }>;
   });
 }
 
-function createVideoAnalysisFromUrl(url: string, style?: ReportStyle): Promise<{ id: string }> {
+function createVideoAnalysisFromUrl(userId: string, url: string, style?: ReportStyle): Promise<{ id: string }> {
   if (USE_VIDEO_MOCK) return videoMock.createFromUrl(url, style);
-  return request<{ id: string }>('/video/analyses', { method: 'POST', body: { url, style } });
+  return request<{ id: string }>(`/users/${userId}/video/analyses`, { method: 'POST', body: { url, style } });
 }
 
-function getVideoJob(id: string): Promise<VideoAnalysis> {
+function getVideoJob(userId: string, id: string): Promise<VideoAnalysis> {
   if (USE_VIDEO_MOCK) return videoMock.getVideoJob(id);
-  return request<VideoAnalysis>(`/video/jobs/${id}`);
+  return request<VideoAnalysis>(`/users/${userId}/video/jobs/${id}`);
 }
 
-function listVideoAnalyses(): Promise<VideoAnalysisListItem[]> {
+function listVideoAnalyses(userId: string): Promise<VideoAnalysisListItem[]> {
   if (USE_VIDEO_MOCK) return videoMock.listVideoAnalyses();
-  return request<VideoAnalysisListItem[]>('/video/analyses');
+  return request<VideoAnalysisListItem[]>(`/users/${userId}/video/analyses`);
 }
 
-function getVideoAnalysis(id: string): Promise<VideoAnalysis> {
+function getVideoAnalysis(userId: string, id: string): Promise<VideoAnalysis> {
   if (USE_VIDEO_MOCK) return videoMock.getVideoAnalysis(id);
-  return request<VideoAnalysis>(`/video/analyses/${id}`);
+  return request<VideoAnalysis>(`/users/${userId}/video/analyses/${id}`);
 }
 
-function deleteVideoAnalysis(id: string): Promise<void> {
+function deleteVideoAnalysis(userId: string, id: string): Promise<void> {
   if (USE_VIDEO_MOCK) return videoMock.deleteVideoAnalysis(id);
-  return request<void>(`/video/analyses/${id}`, { method: 'DELETE' });
+  return request<void>(`/users/${userId}/video/analyses/${id}`, { method: 'DELETE' });
 }
 
 // 后端错误响应体形如 {"error":"..."}，request() 会把整段响应体作为 Error.message 抛出。
@@ -168,6 +193,9 @@ export const api = {
   generatePicturebook,
   sharePicture,
   getLanIp,
+  listPictureBooks,
+  createPictureBook,
+  deletePictureBookRemote,
   login,
   getModuleData,
   putModuleData,
