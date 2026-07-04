@@ -40,6 +40,7 @@ function applyTheme(key: string) {
 
 function ThemeSwitcher() {
   const [active, setActive] = useState('default')
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     ensureFontsLoaded()
@@ -48,8 +49,29 @@ function ThemeSwitcher() {
     setActive(saved)
   }, [])
 
+  if (!open) {
+    const activeSwatch = THEMES.find((t) => t.key === active)?.swatch ?? THEMES[0].swatch
+    return (
+      <button
+        type="button"
+        title="主题预览切换"
+        onClick={() => setOpen(true)}
+        className="fixed bottom-24 right-4 md:bottom-4 z-[100] h-9 w-9 rounded-full bg-white/95 shadow-lg ring-1 ring-black/10 flex items-center justify-center"
+      >
+        <span className="h-4 w-4 rounded-full" style={{ backgroundColor: activeSwatch }} />
+      </button>
+    )
+  }
+
   return (
     <div className="fixed bottom-24 right-4 md:bottom-4 z-[100] flex flex-col gap-1 rounded-2xl bg-white/95 p-2 shadow-lg ring-1 ring-black/10">
+      <button
+        type="button"
+        onClick={() => setOpen(false)}
+        className="flex items-center justify-end px-2 text-xs font-bold text-stone-400 hover:text-stone-600 transition-colors"
+      >
+        收起 ✕
+      </button>
       {THEMES.map((theme) => (
         <button
           key={theme.key}
