@@ -18,7 +18,8 @@ const BASE = '/api';
 const USE_VIDEO_MOCK = false;
 
 // 后端 /api/training/* 未就绪时用前端 Mock 预览全流程；接口上线后改为 false 即联调（页面无需改动）。
-const USE_TRAINING_MOCK = true;
+// 后端已就绪（serve/src/routes/training.ts），联调走真实接口。
+const USE_TRAINING_MOCK = false;
 
 async function request<T>(path: string, options?: { method?: string; body?: unknown }): Promise<T> {
   const { method, body } = options ?? {};
