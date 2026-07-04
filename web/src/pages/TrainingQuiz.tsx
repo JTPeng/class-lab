@@ -15,13 +15,14 @@ export default function TrainingQuiz() {
   const { user } = useAuth()
   const [questions, setQuestions] = useState<TrainingQuestion[]>([])
   const [answers, setAnswers] = useState<number[][]>([])
+  // 按题目下标记录判分状态，支持「上一题」回看已判分题目而不重置。
+  const [checkedList, setCheckedList] = useState<boolean[]>([])
+  const [correctList, setCorrectList] = useState<boolean[]>([])
   const [index, setIndex] = useState(0)
   const [result, setResult] = useState<TrainingAttempt | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [checked, setChecked] = useState(false)
-  const [isCorrect, setIsCorrect] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -30,13 +31,15 @@ export default function TrainingQuiz() {
       .then((qs) => {
         setQuestions(qs)
         setAnswers(qs.map(() => []))
+        setCheckedList(qs.map(() => false))
+        setCorrectList(qs.map(() => false))
       })
       .catch((err) => setError(apiErrorMessage(err, '加载题目失败')))
       .finally(() => setLoading(false))
   }, [id])
 
   function toggleOption(qIndex: number, optionIndex: number, multi: boolean) {
-    if (checked) return
+    if (checkedList[qIndex]) return
     setAnswers((prev) => {
       const next = [...prev]
       const current = next[qIndex] ?? []
@@ -49,11 +52,11 @@ export default function TrainingQuiz() {
     })
   }
 
-  async function submitAttempt(finalAnswers: number[][]) {
+  async function submitAttempt() {
     if (!id || !user) return
     setSubmitting(true)
     try {
-      setResult(await api.submitTrainingAttempt(id, user.id, finalAnswers))
+      setResult(await api.submitTrainingAttempt(id, user.id, answers))
     } catch (err) {
       setError(apiErrorMessage(err, '提交失败'))
     } finally {
@@ -61,13 +64,11 @@ export default function TrainingQuiz() {
     }
   }
 
-  function advance(finalAnswers: number[][]) {
+  function advance() {
     if (index < questions.length - 1) {
       setIndex((i) => i + 1)
-      setChecked(false)
-      setIsCorrect(false)
     } else {
-      submitAttempt(finalAnswers)
+      submitAttempt()
     }
   }
 
@@ -76,10 +77,18 @@ export default function TrainingQuiz() {
     const selected = answers[index] ?? []
     if (!q || selected.length === 0) return
     const correct = isSameAnswer(selected, q.correctAnswers)
-    setChecked(true)
-    setIsCorrect(correct)
+    setCheckedList((prev) => {
+      const next = [...prev]
+      next[index] = true
+      return next
+    })
+    setCorrectList((prev) => {
+      const next = [...prev]
+      next[index] = correct
+      return next
+    })
     if (correct) {
-      advance(answers)
+      advance()
     }
   }
 
@@ -105,6 +114,8 @@ export default function TrainingQuiz() {
   if (!q) return null
   const selected = answers[index] ?? []
   const isLast = index === questions.length - 1
+  const checked = checkedList[index] ?? false
+  const isCorrect = correctList[index] ?? false
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
@@ -135,7 +146,14 @@ export default function TrainingQuiz() {
           <p>{q.explanation}</p>
         </div>
       )}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between">
+        <button
+          disabled={index === 0}
+          onClick={() => setIndex((i) => i - 1)}
+          className="px-4 py-2 rounded-full font-bold text-stone-500 disabled:opacity-40"
+        >
+          上一题
+        </button>
         {!checked ? (
           <button
             disabled={selected.length === 0}
@@ -147,7 +165,7 @@ export default function TrainingQuiz() {
         ) : (
           <button
             disabled={submitting}
-            onClick={() => advance(answers)}
+            onClick={advance}
             className="px-5 py-2 rounded-full bg-brand-500 text-white font-bold shadow-soft disabled:opacity-40"
           >
             {submitting ? '提交中…' : isLast ? '查看结果' : '下一题'}
