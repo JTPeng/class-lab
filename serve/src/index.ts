@@ -19,6 +19,7 @@ import { registerFruitImageRoutes } from './routes/fruitImage.js';
 import { registerPoseImageRoutes } from './routes/poseImage.js';
 import { registerVideoAnalysisRoutes } from './routes/videoAnalysis.js';
 import { registerPictureBookRecordsRoutes } from './routes/pictureBookRecords.js';
+import { registerTrainingRoutes } from './routes/training.js';
 import { markInterruptedJobsFailed, videosDir } from './lib/videoJobs.js';
 import type { generateImageUrl as defaultGenerateImageUrl } from './ai/imageClient.js';
 
@@ -69,6 +70,7 @@ export async function buildApp(deps: BuildAppDeps = {}): Promise<FastifyInstance
       registerPoseImageRoutes(instance);
       registerVideoAnalysisRoutes(instance, { db });
       await registerPictureBookRecordsRoutes(instance, { db });
+      await registerTrainingRoutes(instance, { db });
     },
     { prefix: '/api' },
   );
