@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
+import { api, apiErrorMessage } from '../api/client'
 import type { Sto } from '../types/lesson'
 import SectionHeading from './poster/SectionHeading'
 
@@ -10,12 +11,56 @@ function RoundFlow({
   procedure,
   dataCollection,
   masteryCriteria,
+  caseId,
+  lessonId,
 }: {
   procedure: Sto['procedure']
   dataCollection: string
   masteryCriteria: string
+  caseId?: string
+  lessonId?: string
 }) {
   const [state, setState] = useState<RoundState>('sd')
+  const [correctCount, setCorrectCount] = useState(0)
+  const [incorrectCount, setIncorrectCount] = useState(0)
+  const [showScoreForm, setShowScoreForm] = useState(false)
+  const [cooperation, setCooperation] = useState(3)
+  const [progress, setProgress] = useState(3)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitted, setSubmitted] = useState(false)
+
+  function handleCorrect() {
+    setCorrectCount((n) => n + 1)
+    setState('correct')
+  }
+
+  function handleIncorrect() {
+    setIncorrectCount((n) => n + 1)
+    setState('incorrect')
+  }
+
+  async function handleSubmitScore(e: FormEvent) {
+    e.preventDefault()
+    if (!caseId) return
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      await api.createCaseSession(caseId, {
+        lessonId: lessonId ?? null,
+        trialsTotal: correctCount + incorrectCount,
+        trialsCorrect: correctCount,
+        teacherCooperation: cooperation,
+        teacherProgress: progress,
+      })
+      setSubmitted(true)
+      setShowScoreForm(false)
+    } catch (err) {
+      setSubmitError(apiErrorMessage(err, '提交失败，请重试'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <section>
@@ -32,14 +77,14 @@ function RoundFlow({
           <div className="mt-6 flex flex-wrap gap-3 print:hidden">
             <button
               type="button"
-              onClick={() => setState('correct')}
+              onClick={handleCorrect}
               className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-emerald-600"
             >
               孩子正确
             </button>
             <button
               type="button"
-              onClick={() => setState('incorrect')}
+              onClick={handleIncorrect}
               className="rounded-full bg-rose-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-rose-600"
             >
               孩子错误
@@ -83,6 +128,82 @@ function RoundFlow({
           </button>
         </div>
       </div>
+
+      {caseId && (
+        <div className="mt-4 print:hidden">
+          {!submitted ? (
+            <div className="rounded-2xl bg-white p-6 shadow-card ring-1 ring-brand-100">
+              <p className="text-sm text-stone-600">
+                本次已记录 <span className="font-bold text-emerald-600">{correctCount}</span> 次正确 /{' '}
+                <span className="font-bold text-rose-600">{incorrectCount}</span> 次错误
+              </p>
+              {!showScoreForm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowScoreForm(true)}
+                  disabled={correctCount + incorrectCount === 0}
+                  className="mt-4 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 disabled:opacity-50"
+                >
+                  结束训练
+                </button>
+              ) : (
+                <form onSubmit={handleSubmitScore} className="mt-4 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
+                      配合度：{cooperation} 分
+                    </label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={5}
+                      value={cooperation}
+                      onChange={(e) => setCooperation(Number(e.target.value))}
+                      disabled={submitting}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
+                      阶段性进步印象：{progress} 分
+                    </label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={5}
+                      value={progress}
+                      onChange={(e) => setProgress(Number(e.target.value))}
+                      disabled={submitting}
+                      className="w-full"
+                    />
+                  </div>
+                  {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-brand-600 disabled:opacity-50"
+                    >
+                      {submitting ? '提交中...' : '提交打分'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowScoreForm(false)}
+                      disabled={submitting}
+                      className="rounded-full bg-stone-200 px-6 py-2.5 text-sm font-bold text-stone-800 hover:bg-stone-300"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-2xl border-l-4 border-emerald-400 bg-emerald-50 p-5 text-emerald-900">
+              本次训练记录已提交。
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border-l-4 border-brand-400 bg-white p-5 shadow-card ring-1 ring-brand-100">

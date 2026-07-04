@@ -15,6 +15,9 @@ export interface PictureBookRecord {
   date: string;
   createdAt: string;
   count: number;
+  caseId: string | null;
+  teacherCooperation: number | null;
+  teacherProgress: number | null;
 }
 
 type PictureBookRow = {
@@ -29,6 +32,9 @@ type PictureBookRow = {
   date: string;
   createdAt: string;
   count: number;
+  caseId: string | null;
+  teacherCooperation: number | null;
+  teacherProgress: number | null;
 };
 
 function rowToRecord(row: PictureBookRow): PictureBookRecord {
@@ -86,4 +92,25 @@ export async function listPictureBooks(db: DbClient, userId: string): Promise<Pi
 export async function deletePictureBook(db: DbClient, userId: string, id: string): Promise<boolean> {
   const result = await db.run(`DELETE FROM picture_books WHERE id = ? AND userId = ?`, [id, userId]);
   return result.changes > 0;
+}
+
+export async function linkPictureBookScore(
+  db: DbClient,
+  id: string,
+  userId: string,
+  input: { caseId: string; teacherCooperation: number; teacherProgress: number },
+): Promise<boolean> {
+  const result = await db.run(
+    `UPDATE picture_books SET caseId = ?, teacherCooperation = ?, teacherProgress = ? WHERE id = ? AND userId = ?`,
+    [input.caseId, input.teacherCooperation, input.teacherProgress, id, userId],
+  );
+  return result.changes > 0;
+}
+
+export async function listPictureBooksByCase(db: DbClient, caseId: string): Promise<PictureBookRecord[]> {
+  const rows = await db.all<PictureBookRow>(
+    `SELECT * FROM picture_books WHERE caseId = ? ORDER BY createdAt DESC`,
+    [caseId],
+  );
+  return rows.map(rowToRecord);
 }

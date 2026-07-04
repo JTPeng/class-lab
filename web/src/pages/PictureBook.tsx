@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { api, apiErrorMessage } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 import { counts, ratios, styles, type RatioOption } from '../pictureBook/config'
 import { addRecord, deleteRecord, fetchHistory, getHistory, today, type BookRecord } from '../pictureBook/storage'
 import PictureCard, { QrImage, type PictureBookData } from '../components/PictureCard'
+import CaseScorePanel from '../components/CaseScorePanel'
 
 // 单选 chip 组
 function Options<T>({
@@ -92,6 +94,7 @@ function LanQrModal({ onClose }: { onClose: () => void }) {
 }
 
 function PictureBook() {
+  const { user } = useAuth()
   const [title, setTitle] = useState('')
   const [thoughts, setThoughts] = useState('')
   const [stars, setStars] = useState(5)
@@ -308,6 +311,16 @@ function PictureBook() {
         </section>
 
         {book && <PictureCard data={book} />}
+
+        {book && user && (
+          <div className="mt-6">
+            <CaseScorePanel
+              key={book.id}
+              userId={user.id}
+              onSubmit={(input) => api.linkPictureBookScore(user.id, book.id, input)}
+            />
+          </div>
+        )}
       </div>
     </div>
   )

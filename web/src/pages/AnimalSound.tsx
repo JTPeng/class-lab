@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { ANIMALS, animalImageUrl, playRiddle, shuffle, type Animal } from '../games/animals'
 import { loadProgress, saveProgress, loadHistory, addRecord } from '../games/storage'
 import GameHistoryChart from '../components/GameHistoryChart'
+import CaseScorePanel from '../components/CaseScorePanel'
+import { api } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 
 // 「听声音猜动物」游戏。
 // 规则：每关 5 题，AI 真人音色读一句谜语（不说名字），从若干选项中选出正确动物。答对 +10 分。
@@ -30,6 +33,7 @@ function makeQuestion(level: number): Question {
 }
 
 function AnimalSound() {
+  const { user } = useAuth()
   const saved = useMemo(() => loadProgress(GAME_ID), [])
   const [level, setLevel] = useState(saved.level)
   const [score, setScore] = useState(saved.score)
@@ -138,6 +142,17 @@ function AnimalSound() {
             >
               进入第 {level + 1} 关 →
             </button>
+            {user && (
+              <div className="mt-6 text-left">
+                <CaseScorePanel
+                  key={level}
+                  userId={user.id}
+                  onSubmit={async (input) => {
+                    await api.createGameSession(user.id, GAME_ID, { level, score, ...input })
+                  }}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-card ring-1 ring-brand-100 p-6">

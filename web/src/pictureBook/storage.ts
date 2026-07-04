@@ -99,12 +99,14 @@ export function deleteRecord(id: string, userId?: string | null): void {
   }
 }
 
-// 打开历史时调用：优先从后端拉取并覆盖本地缓存展示；后端不可用（离线等）时回退读本地缓存。
+// 打开历史时调用：优先从后端拉取并覆盖本地缓存展示；后端返回空或不可用（离线等）时回退读本地缓存，
+// 避免因单次同步失败（如某条记录未成功写入后端）导致本地已有数据被空结果冲掉（同 games/storage.ts 的 hydrateProgress 模式）。
 export async function fetchHistory(userId?: string | null): Promise<BookRecord[]> {
   const uid = userId ?? currentUserId();
   if (!uid) return getHistory(uid);
   try {
     const records = await api.listPictureBooks(uid);
+    if (records.length === 0) return getHistory(uid);
     writeAll(uid, records);
     return records;
   } catch {

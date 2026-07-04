@@ -4,6 +4,9 @@ import { createUsersTable } from './users.js';
 import { createModuleDataTable } from './moduleData.js';
 import { createVideoAnalysesTable } from './videoAnalyses.js';
 import { createPictureBooksTable } from './pictureBooks.js';
+import { createCasesTable } from './cases.js';
+import { createCaseSessionsTable } from './caseSessions.js';
+import { createGameSessionsTable } from './gameSessions.js';
 import { backfillOwnerlessData } from './migrations.js';
 
 export type LessonListItem = {
@@ -38,6 +41,46 @@ async function addLessonsUserIdColumn(db: DbClient): Promise<void> {
   }
 }
 
+async function addLessonsCaseIdColumn(db: DbClient): Promise<void> {
+  if (db.dialect === 'mysql') {
+    const row = await db.get<{ count: number }>(
+      `SELECT COUNT(*) AS count FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'lessons' AND column_name = 'caseId'`,
+    );
+    if (!row || row.count === 0) {
+      await db.exec(`ALTER TABLE lessons ADD COLUMN caseId VARCHAR(191)`);
+    }
+  } else {
+    const columns = await db.all<{ name: string }>(`PRAGMA table_info(lessons)`);
+    if (!columns.some((c) => c.name === 'caseId')) {
+      await db.exec(`ALTER TABLE lessons ADD COLUMN caseId TEXT`);
+    }
+  }
+}
+
+async function addPictureBooksScoreColumns(db: DbClient): Promise<void> {
+  const columns: Array<[string, string]> = [
+    ['caseId', db.dialect === 'mysql' ? 'VARCHAR(191)' : 'TEXT'],
+    ['teacherCooperation', db.dialect === 'mysql' ? 'INT' : 'INTEGER'],
+    ['teacherProgress', db.dialect === 'mysql' ? 'INT' : 'INTEGER'],
+  ];
+  for (const [name, colType] of columns) {
+    if (db.dialect === 'mysql') {
+      const row = await db.get<{ count: number }>(
+        `SELECT COUNT(*) AS count FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'picture_books' AND column_name = ?`,
+        [name],
+      );
+      if (!row || row.count === 0) {
+        await db.exec(`ALTER TABLE picture_books ADD COLUMN ${name} ${colType}`);
+      }
+    } else {
+      const existing = await db.all<{ name: string }>(`PRAGMA table_info(picture_books)`);
+      if (!existing.some((c) => c.name === name)) {
+        await db.exec(`ALTER TABLE picture_books ADD COLUMN ${name} ${colType}`);
+      }
+    }
+  }
+}
+
 export async function initSchema(client: DbClient): Promise<void> {
   const idType = client.dialect === 'mysql' ? 'VARCHAR(36) PRIMARY KEY' : 'TEXT PRIMARY KEY';
   const dataType = client.dialect === 'mysql' ? 'LONGTEXT' : 'TEXT';
@@ -51,17 +94,22 @@ export async function initSchema(client: DbClient): Promise<void> {
     )`,
   );
   await addLessonsUserIdColumn(client);
+  await addLessonsCaseIdColumn(client);
   await createUsersTable(client);
   await createModuleDataTable(client);
   await createVideoAnalysesTable(client);
   await createPictureBooksTable(client);
+  await addPictureBooksScoreColumns(client);
+  await createCasesTable(client);
+  await createCaseSessionsTable(client);
+  await createGameSessionsTable(client);
   await backfillOwnerlessData(client);
 }
 
-export async function insertLesson(db: DbClient, lesson: Lesson, userId: string): Promise<void> {
+export async function insertLesson(db: DbClient, lesson: Lesson, userId: string, caseId: string): Promise<void> {
   await db.run(
-    `INSERT INTO lessons (id, title, skill, createdAt, data, userId) VALUES (?, ?, ?, ?, ?, ?)`,
-    [lesson.id, lesson.title, lesson.input.skill, lesson.createdAt, JSON.stringify(lesson), userId],
+    `INSERT INTO lessons (id, title, skill, createdAt, data, userId, caseId) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [lesson.id, lesson.title, lesson.input.skill, lesson.createdAt, JSON.stringify(lesson), userId, caseId],
   );
 }
 
@@ -73,10 +121,10 @@ function coverUrlFromLesson(lesson: Lesson): string | undefined {
   return lesson.images.find((image) => image.status === 'done' && image.url)?.url;
 }
 
-export async function listLessons(db: DbClient, userId: string): Promise<LessonListItem[]> {
+export async function listLessons(db: DbClient, caseId: string): Promise<LessonListItem[]> {
   const rows = await db.all<LessonRow>(
-    `SELECT id, title, skill, createdAt, data FROM lessons WHERE userId = ? ORDER BY createdAt DESC`,
-    [userId],
+    `SELECT id, title, skill, createdAt, data FROM lessons WHERE caseId = ? ORDER BY createdAt DESC`,
+    [caseId],
   );
 
   return rows.map((row) => ({
@@ -88,16 +136,16 @@ export async function listLessons(db: DbClient, userId: string): Promise<LessonL
   }));
 }
 
-export async function getLesson(db: DbClient, id: string, userId?: string): Promise<Lesson | null> {
-  const row = userId
-    ? await db.get<{ data: string }>(`SELECT data FROM lessons WHERE id = ? AND userId = ?`, [id, userId])
+export async function getLesson(db: DbClient, id: string, caseId?: string): Promise<Lesson | null> {
+  const row = caseId
+    ? await db.get<{ data: string }>(`SELECT data FROM lessons WHERE id = ? AND caseId = ?`, [id, caseId])
     : await db.get<{ data: string }>(`SELECT data FROM lessons WHERE id = ?`, [id]);
   return row ? (JSON.parse(row.data) as Lesson) : null;
 }
 
-export async function deleteLesson(db: DbClient, id: string, userId?: string): Promise<boolean> {
-  const result = userId
-    ? await db.run(`DELETE FROM lessons WHERE id = ? AND userId = ?`, [id, userId])
+export async function deleteLesson(db: DbClient, id: string, caseId?: string): Promise<boolean> {
+  const result = caseId
+    ? await db.run(`DELETE FROM lessons WHERE id = ? AND caseId = ?`, [id, caseId])
     : await db.run(`DELETE FROM lessons WHERE id = ?`, [id]);
   return result.changes > 0;
 }

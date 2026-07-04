@@ -9,7 +9,7 @@ import type { DbClient } from './db/client.js';
 import { createDbClient } from './db/client.js';
 import { initSchema } from './db/index.js';
 import { generateLesson as defaultGenerateLesson } from './services/generateLesson.js';
-import { registerLessonRoutes } from './routes/lessons.js';
+import { registerCaseRoutes } from './routes/cases.js';
 import { registerImageRoutes, uploadsDir } from './routes/images.js';
 import { registerPicturebookRoutes, sharedDir } from './routes/picturebook.js';
 import { registerUserRoutes } from './routes/users.js';
@@ -19,6 +19,7 @@ import { registerFruitImageRoutes } from './routes/fruitImage.js';
 import { registerPoseImageRoutes } from './routes/poseImage.js';
 import { registerVideoAnalysisRoutes } from './routes/videoAnalysis.js';
 import { registerPictureBookRecordsRoutes } from './routes/pictureBookRecords.js';
+import { registerGameSessionsRoutes } from './routes/gameSessions.js';
 import { markInterruptedJobsFailed, videosDir } from './lib/videoJobs.js';
 import type { generateImageUrl as defaultGenerateImageUrl } from './ai/imageClient.js';
 
@@ -55,7 +56,7 @@ export async function buildApp(deps: BuildAppDeps = {}): Promise<FastifyInstance
 
   app.register(
     async (instance) => {
-      await registerLessonRoutes(instance, { db, generateLesson });
+      await registerCaseRoutes(instance, { db, generateLesson });
       await registerImageRoutes(instance, {
         db,
         generateImageUrl: deps.generateImageUrl,
@@ -69,6 +70,7 @@ export async function buildApp(deps: BuildAppDeps = {}): Promise<FastifyInstance
       registerPoseImageRoutes(instance);
       registerVideoAnalysisRoutes(instance, { db });
       await registerPictureBookRecordsRoutes(instance, { db });
+      await registerGameSessionsRoutes(instance, { db });
     },
     { prefix: '/api' },
   );

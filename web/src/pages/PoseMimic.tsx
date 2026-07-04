@@ -4,6 +4,9 @@ import { FilesetResolver, PoseLandmarker, type PoseLandmarkerResult } from '@med
 import { loadProgress, saveProgress, loadHistory, addRecord } from '../games/storage'
 import { poseForLevel, poseImageUrl, scorePose, type Landmark } from '../games/poses'
 import GameHistoryChart from '../components/GameHistoryChart'
+import CaseScorePanel from '../components/CaseScorePanel'
+import { api } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 
 // 「跟我做动作」游戏。
 // 左侧是 AI 生成的卡通动作参考图，右侧是摄像头。小朋友模仿动作，浏览器用 MediaPipe
@@ -23,6 +26,7 @@ const MODEL_URL =
 type Phase = 'loading' | 'ready' | 'error'
 
 function PoseMimic() {
+  const { user } = useAuth()
   const saved = useMemo(() => loadProgress(GAME_ID), [])
   const [level, setLevel] = useState(saved.level)
   const [score, setScore] = useState(saved.score)
@@ -286,6 +290,18 @@ function PoseMimic() {
             )}
           </div>
         </div>
+
+        {levelDone && user && (
+          <div className="mt-6">
+            <CaseScorePanel
+              key={level}
+              userId={user.id}
+              onSubmit={async (input) => {
+                await api.createGameSession(user.id, GAME_ID, { level, score, ...input })
+              }}
+            />
+          </div>
+        )}
 
         <GameHistoryChart records={history} />
       </div>
