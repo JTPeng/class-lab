@@ -11,7 +11,7 @@ export type TrainingTopic = {
   createdAt: string;
 };
 
-export type TrainingQuestionType = 'single' | 'multi';
+export type TrainingQuestionType = 'single' | 'multi' | 'judge';
 
 export type TrainingQuestion = {
   id: string;
