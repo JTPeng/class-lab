@@ -27,10 +27,8 @@ function LoginScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-brand-50 via-brand-100/60 to-brand-50 px-4">
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-card ring-1 ring-brand-100 p-8 text-center">
-        <div className="text-5xl mb-3">🎓</div>
-        <h1 className="text-2xl font-black text-stone-900 mb-1">
-          Class-<span className="text-brand-500">Lab</span>
-        </h1>
+        <img src="/favicon.svg" alt="" className="w-16 h-16 mx-auto mb-3" />
+        <h1 className="text-2xl font-black text-stone-900 mb-1">士多啤梨</h1>
         <p className="text-sm text-stone-600 mb-6">请先登录后使用</p>
         <form onSubmit={submit} className="space-y-3">
           <input

@@ -45,8 +45,9 @@ function AppShell() {
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-50 bg-cream/95 backdrop-blur border-b border-brand-100 shadow-card">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-6">
-          <Link to="/" className="text-lg font-black text-stone-900 shrink-0">
-            Class-Lab
+          <Link to="/" className="flex items-center gap-1.5 text-lg font-black text-stone-900 shrink-0">
+            <img src="/favicon.svg" alt="" className="w-6 h-6" />
+            士多啤梨
           </Link>
           <nav className="flex items-center gap-1">
             {tabs.map((tab) => {
